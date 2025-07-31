@@ -1,0 +1,6 @@
+{
+  "reservation_confirmed_title": "రిజర్వేషన్ ధృవీకరించబడింది",
+  "reservation_confirmed_body": "మీ {cropName} పంట రిజర్వేషన్ ధృవీకరించబడింది.",
+  "reservation_reminder_title": "రిజర్వేషన్ గుర్తు",
+  "reservation_reminder_body": "మీరు నేడు {cropName} పంట రిజర్వ్ చేసారు."
+}

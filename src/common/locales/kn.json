@@ -1,0 +1,6 @@
+{
+  "reservation_confirmed_title": "ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ",
+  "reservation_confirmed_body": "ನಿಮ್ಮ {cropName} ಬೆಳೆಕ್ಕಾಗಿ ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
+  "reservation_reminder_title": "ಕಾಯ್ದಿರಿಸಿದ ನೆನಪು",
+  "reservation_reminder_body": "ನೀವು ಇಂದು {cropName} ಬೆಳೆಕ್ಕಾಗಿ ಕಾಯ್ದಿರಿದ್ದೀರಿ."
+}

@@ -1,0 +1,6 @@
+{
+  "reservation_confirmed_title": "आरक्षण पुष्टि हुआ",
+  "reservation_confirmed_body": "आपका {cropName} के लिए आरक्षण पुष्टि हो गया है।",
+  "reservation_reminder_title": "आरक्षण अनुस्मारक",
+  "reservation_reminder_body": "आज के लिए आपका {cropName} का आरक्षण निर्धारित है।"
+}

@@ -1,0 +1,17 @@
+# Ignore unnecessary files and directories for a cleaner Docker image
+
+# Local dependencies
+node_modules
+
+# Build output
+dist
+
+# Env files (security)
+.env
+.env.*
+
+# Docker config
+Dockerfile
+
+# Docs, not needed in image
+README.md    

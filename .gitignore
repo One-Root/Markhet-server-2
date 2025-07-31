@@ -1,0 +1,59 @@
+# nest.js specific
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# .npmrc
+.npmrc
+
+# build output
+/dist
+/build
+/.next
+/coverage
+/.turbo
+
+#migrations
+src/data-source.ts
+
+# docker
+.docker/
+docker-compose.override.yml
+Dockerfile.*
+
+# typescript specific
+*.tsbuildinfo
+
+# environment variables
+.env*
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ides and editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# os specific files
+.DS_Store
+Thumbs.db
+
+# test coverage directory
+test-coverage/
+
+# miscellaneous
+*.tgz
+*.bak
+*.tmp
+
+# system files
+*.DS_Store
+
+# gcp credentials (sensitive data)
+src/config/gcp-credentials/

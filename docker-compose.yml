@@ -1,0 +1,35 @@
+services:
+  app:
+    # Build the app from the current directory using the Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Tag for the built image to push to AWS ECR
+    image: 050451360524.dkr.ecr.ap-south-1.amazonaws.com/markhet-server:latest
+
+    # Set a custom container name
+    container_name: markhet_server
+
+    # Load environment variables from .env file
+    env_file:
+      - .env.${NODE_ENV}
+
+    # Expose container port to host
+    ports:
+      # Maps PORT from .env to the container port
+      - '${PORT}:${PORT}'
+
+    # Mount current directory and node_modules volume
+    volumes:
+      # Mounts the code into the container
+      - .:/app
+
+      # Prevents overwriting of node_modules
+      - /app/node_modules
+
+    # Restart the container unless stopped manually
+    restart: unless-stopped
+
+    # Specify the platform for building the image
+    platform: linux/amd64

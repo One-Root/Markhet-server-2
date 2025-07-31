@@ -1,0 +1,6 @@
+{
+  "reservation_confirmed_title": "Reservation Confirmed",
+  "reservation_confirmed_body": "Your reservation for the crop {cropName} has been confirmed.",
+  "reservation_reminder_title": "Reservation Reminder",
+  "reservation_reminder_body": "You have a reservation scheduled today for the crop {cropName}."
+}
