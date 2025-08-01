@@ -8,11 +8,13 @@ import {
   IsArray,
   IsBoolean,
   IsOptional,
+  IsNotEmpty,
 } from 'class-validator';
 import { SunflowerVariety } from '../../../common/enums/crop.enum';
 
 export class CreateSunflowerDto {
-  @IsEnum(SunflowerVariety)
+  @IsNotEmpty()
+  @IsEnum(SunflowerVariety) // This will now use the correct enum
   sunflowerVariety: SunflowerVariety;
 
   @IsDateString()

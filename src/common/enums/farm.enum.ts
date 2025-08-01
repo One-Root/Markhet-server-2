@@ -3,6 +3,7 @@ enum CropName {
   TURMERIC = 'Turmeric',
   BANANA = 'Banana',
   DRY_COCONUT = 'Dry Coconut',
+  SUNFLOWER = 'Sunflower',
 }
 
 enum Weather {

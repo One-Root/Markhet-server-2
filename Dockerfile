@@ -38,7 +38,8 @@ WORKDIR /app
 COPY pnpm-lock.yaml ./
 COPY package.json ./
 COPY .npmrc ./
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --frozen-lockfile
+
 
 # Copy built files from the build stage
 COPY --from=build /app/dist ./dist

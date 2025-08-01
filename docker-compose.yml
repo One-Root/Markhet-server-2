@@ -1,35 +1,47 @@
 services:
+  postgres:
+    image: postgres:16
+    container_name: markhet_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: markhet_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
   app:
-    # Build the app from the current directory using the Dockerfile
     build:
       context: .
       dockerfile: Dockerfile
-
-    # Tag for the built image to push to AWS ECR
+      target: build  # 👈 Use dev stage
     image: 050451360524.dkr.ecr.ap-south-1.amazonaws.com/markhet-server:latest
-
-    # Set a custom container name
     container_name: markhet_server
-
-    # Load environment variables from .env file
     env_file:
-      - .env.${NODE_ENV}
-
-    # Expose container port to host
+      - .env.development
+    command: pnpm start:dev  # 👈 Run in watch mode
     ports:
-      # Maps PORT from .env to the container port
-      - '${PORT}:${PORT}'
-
-    # Mount current directory and node_modules volume
+      - '8001:8001'
     volumes:
-      # Mounts the code into the container
       - .:/app
-
-      # Prevents overwriting of node_modules
       - /app/node_modules
-
-    # Restart the container unless stopped manually
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
-
-    # Specify the platform for building the image
     platform: linux/amd64
+
+volumes:
+  pgdata:
+  redisdata:
