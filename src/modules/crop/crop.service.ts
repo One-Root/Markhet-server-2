@@ -10,6 +10,7 @@ import {
   Turmeric,
   DryCoconut,
   TenderCoconut,
+  Sunflower,
 } from '@one-root/markhet-core';
 
 import { FarmService } from '../farm/farm.service';
@@ -26,6 +27,8 @@ import { UpdateTurmericDto } from './dto/update-turmeric.dto';
 import { UpdateDryCoconutDto } from './dto/update-dry-coconut.dto';
 import { UpdateTenderCoconutDto } from './dto/update-tender-coconut.dto';
 import { GetCropsQueryParamsDto } from './dto/get-crops-query-params.dto';
+import { CreateSunflowerDto } from './dto/create-sunflower.dto';
+import { UpdateSunflowerDto } from './dto/update-sunflower.dto';
 
 import { CropType } from '../../common/types/crop.type';
 import { Language } from '../../common/enums/user.enum';
@@ -37,6 +40,7 @@ import {
   TurmericVariety,
   DryCoconutVariety,
   TenderCoconutVariety,
+  SunflowerVariety,
 } from '../../common/enums/crop.enum';
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { EventPublisher } from '../event/publisher/event.publisher';
@@ -56,6 +60,9 @@ export class CropService {
 
     @InjectRepository(DryCoconut)
     private readonly dryCoconutRepository: Repository<DryCoconut>,
+
+    @InjectRepository(Sunflower)
+    private readonly sunflowerRepository: Repository<Sunflower>,
 
     private readonly farmService: FarmService,
 
@@ -349,6 +356,39 @@ export class CropService {
     return repository.save(crop);
   }
 
+  async createSunflower(
+    farmId: string,
+    createSunflowerDto: CreateSunflowerDto,
+  ): Promise<Sunflower> {
+    const farm = await this.farmService.findOne(farmId);
+    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+
+    const crop = repository.create({
+      sunflowerVariety: createSunflowerDto.sunflowerVariety,
+      farm: farm,
+      cropName: CropName.SUNFLOWER,
+    }) as Sunflower;
+
+    return repository.save(crop);
+  }
+
+  async updateSunflower(
+    id: string,
+    updateSunflowerDto: UpdateSunflowerDto,
+  ): Promise<Sunflower> {
+    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+
+    const crop = await repository.findOne({ where: { id } });
+
+    if (!crop) {
+      throw new NotFoundException(`sunflower with id ${id} not found`);
+    }
+
+    Object.assign(crop, updateSunflowerDto);
+
+    return repository.save(crop);
+  }
+
   isValidVariety(cropName: CropName, cropVariety: string): boolean {
     switch (cropName) {
       case CropName.TENDER_COCONUT:
@@ -371,6 +411,11 @@ export class CropService {
           cropVariety as DryCoconutVariety,
         );
 
+      case CropName.SUNFLOWER:
+        return Object.values(SunflowerVariety).includes(
+          cropVariety as SunflowerVariety,
+        );
+
       default:
         return false;
     }
@@ -389,6 +434,9 @@ export class CropService {
 
       case CropName.DRY_COCONUT:
         return this.dryCoconutRepository as Repository<T>;
+
+      case CropName.SUNFLOWER:
+        return this.sunflowerRepository as Repository<T>;
 
       default:
         throw new Error(`repository for crop '${cropName}' not found`);

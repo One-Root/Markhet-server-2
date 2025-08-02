@@ -19,6 +19,7 @@ import {
   Turmeric,
   DryCoconut,
   TenderCoconut,
+  Sunflower,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -35,6 +36,8 @@ import { UpdateTurmericDto } from './dto/update-turmeric.dto';
 import { UpdateDryCoconutDto } from './dto/update-dry-coconut.dto';
 import { UpdateTenderCoconutDto } from './dto/update-tender-coconut.dto';
 import { GetCropsQueryParamsDto } from './dto/get-crops-query-params.dto';
+import { CreateSunflowerDto } from './dto/create-sunflower.dto';
+import { UpdateSunflowerDto } from './dto/update-sunflower.dto';
 
 import { CropType } from '../../common/types/crop.type';
 import { CropName } from '../../common/enums/farm.enum';
@@ -45,6 +48,23 @@ import { ApiResponse } from '../../common/interceptors/api-response.interceptor'
 @UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
+
+  @Post(':farmId/sunflower')
+  async createSunflowerCrop(
+    @Param('farmId', ParseUUIDPipe) farmId: string,
+    @Body() createSunflowerDto: CreateSunflowerDto,
+  ): Promise<ApiResponse<Sunflower>> {
+    const crop = await this.cropService.createSunflower(
+      farmId,
+      createSunflowerDto,
+    );
+
+    return new ApiResponse(
+      HttpStatus.CREATED,
+      'crop created successfully',
+      crop,
+    );
+  }
 
   @Get()
   async getCrops(
@@ -181,6 +201,19 @@ export class CropController {
     const crop = await this.cropService.updateDryCoconut(
       cropId,
       updateDryCoconutDto,
+    );
+
+    return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
+  }
+
+  @Patch('sunflower/:cropId')
+  async updateSunflower(
+    @Param('cropId', ParseUUIDPipe) cropId: string,
+    @Body() UpdateSunflowerDto: UpdateSunflowerDto,
+  ): Promise<ApiResponse<Sunflower>> {
+    const crop = await this.cropService.updateSunflower(
+      cropId,
+      UpdateSunflowerDto,
     );
 
     return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);

@@ -7,6 +7,7 @@ import {
   Turmeric,
   DryCoconut,
   TenderCoconut,
+  Sunflower,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -28,6 +29,7 @@ import { EventModule } from '../event/event.module';
       Turmeric,
       Banana,
       DryCoconut,
+      Sunflower,
     ]),
     EventModule,
     FarmModule,

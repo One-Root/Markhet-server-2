@@ -54,14 +54,14 @@ enum DryCoconutVariety {
   AGT = 'AGT',
 }
 enum SunflowerVariety {
-  KBSH = 'KBSH',
-  MORDEN = 'Morden',
-  PACIFIC = 'Pacific',
-  HYSUN = 'Hysun',
-  KALYAN = 'Kalyan',
-  SUNDROP = 'Sundrop',
-  SUNLITE = 'Sunlite',
-  SUNFLOWER_1 = 'Sunflower 1',
+  COMMON = 'Common',
+  GIANT = 'Giant',
+  DWARF = 'Dwarf',
+  TALL = 'Tall',
+  SUNRAY = 'Sunray',
+  SUNSPOT = 'Sunspot',
+  SUNBURST = 'Sunburst',
+  SUNPOWER = 'Sunpower',
 }
 
 export {
