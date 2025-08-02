@@ -206,6 +206,19 @@ export class CropController {
     return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
   }
 
+  @Patch('sunflower/:cropId')
+  async updateSunflower(
+    @Param('cropId', ParseUUIDPipe) cropId: string,
+    @Body() UpdateSunflowerDto: UpdateSunflowerDto,
+  ): Promise<ApiResponse<Sunflower>> {
+    const crop = await this.cropService.updateSunflower(
+      cropId,
+      UpdateSunflowerDto,
+    );
+
+    return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeCrop(

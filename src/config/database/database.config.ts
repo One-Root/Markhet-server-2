@@ -13,7 +13,5 @@ export const databaseConfig = (): TypeOrmModuleOptions => ({
   subscribers: [__dirname + '/../../**/*.subscriber.{js,ts}'],
   autoLoadEntities: true,
   synchronize: false,
-
-  // 🔥 change this:
-  ssl: false,
+  ssl: true,
 });

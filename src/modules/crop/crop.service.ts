@@ -355,24 +355,40 @@ export class CropService {
 
     return repository.save(crop);
   }
+
   async createSunflower(
     farmId: string,
     createSunflowerDto: CreateSunflowerDto,
   ): Promise<Sunflower> {
-    // Uses your farmService, just like your other create methods
     const farm = await this.farmService.findOne(farmId);
-
-    // Uses your helper to get the correct repository
     const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
 
     const crop = repository.create({
-      ...createSunflowerDto,
-      farm,
+      sunflowerVariety: createSunflowerDto.sunflowerVariety,
+      farm: farm,
       cropName: CropName.SUNFLOWER,
     }) as Sunflower;
 
     return repository.save(crop);
   }
+
+  async updateSunflower(
+    id: string,
+    updateSunflowerDto: UpdateSunflowerDto,
+  ): Promise<Sunflower> {
+    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+
+    const crop = await repository.findOne({ where: { id } });
+
+    if (!crop) {
+      throw new NotFoundException(`sunflower with id ${id} not found`);
+    }
+
+    Object.assign(crop, updateSunflowerDto);
+
+    return repository.save(crop);
+  }
+
   isValidVariety(cropName: CropName, cropVariety: string): boolean {
     switch (cropName) {
       case CropName.TENDER_COCONUT:

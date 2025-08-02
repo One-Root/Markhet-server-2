@@ -1,50 +1,74 @@
-// src/modules/crop/dto/create-sunflower.dto.ts
-
 import {
   IsEnum,
   IsDateString,
-  IsNumber,
-  IsString,
   IsArray,
-  IsBoolean,
+  IsString,
+  IsNumber,
   IsOptional,
-  IsNotEmpty,
+  IsBoolean,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { SunflowerVariety } from '../../../common/enums/crop.enum';
+import { MetaDataDto } from 'src/common/dto/meta-data.dto';
 
 export class CreateSunflowerDto {
-  @IsNotEmpty()
-  @IsEnum(SunflowerVariety) // This will now use the correct enum
+  @IsEnum(SunflowerVariety)
   sunflowerVariety: SunflowerVariety;
 
-  @IsDateString()
-  nextHarvestDate: Date;
-
+  @IsOptional()
   @IsNumber()
   quantity: number;
 
-  @IsArray()
-  @IsString({ each: true })
-  photos: string[];
-
+  @IsOptional()
   @IsString()
-  customField1: string;
-
-  @IsString()
-  customField2: string;
-
-  @IsString()
-  customField3: string;
-
-  @IsNumber()
-  customField4: number;
-
-  @IsNumber()
-  customField5: number;
-
-  @IsBoolean()
-  customField6: boolean;
+  nextHarvestDate?: string;
 
   @IsOptional()
-  customField7: any;
+  @IsString()
+  lastHarvestDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isReadyToHarvest?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  generalHarvestCycleInDays?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MetaDataDto)
+  meta?: { key: string; value: any }[];
+
+  @IsOptional()
+  @IsNumber()
+  price?: number;
+
+  // Custom Fields
+  @IsOptional()
+  @IsString()
+  SunflowerCustomFeild1?: string;
+
+  @IsOptional()
+  @IsString()
+  SunflowerCustomFeild2?: string;
+
+  @IsOptional()
+  @IsString()
+  SunflowerCustomFeild3?: string;
+
+  @IsOptional()
+  @IsString()
+  SunflowerCustomFeild5?: string;
 }
