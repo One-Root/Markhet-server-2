@@ -21,5 +21,6 @@ import { SessionModule } from '../session/session.module';
   ],
   controllers: [FileController],
   providers: [FileService],
+  exports: [FileService],
 })
 export class FileModule {}
