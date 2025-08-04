@@ -60,6 +60,10 @@ export class SignupDto {
   @IsNotEmpty()
   deviceId: string;
 
+  @IsString()
+  @IsOptional()
+  profileImage: string;
+
   @IsArray()
   @IsEnum(CropName, { each: true })
   @ArrayNotEmpty()

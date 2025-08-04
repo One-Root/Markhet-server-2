@@ -10,9 +10,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { OtpModule } from '../../modules/otp/otp.module';
 import { SessionModule } from '../session/session.module';
 import { JwtConfigModule } from '../../config/jwt/jwt-config.module';
+import { FileModule } from '../file/file.module';
 
 @Module({
-  imports: [JwtConfigModule, OtpModule, UserModule, SessionModule],
+  imports: [JwtConfigModule, OtpModule, UserModule, SessionModule, FileModule],
   controllers: [AuthController],
   providers: [JwtAuthGuard, JwtStrategy, AuthService],
   exports: [JwtAuthGuard],
