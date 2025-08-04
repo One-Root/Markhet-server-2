@@ -3,7 +3,7 @@ enum Folders {
   CROPS_TURMERIC = 'crops/turmeric',
   CROPS_BANANA = 'crops/banana',
   CROPS_DRY_COCONUT = 'crops/dry_coconut',
-  USER_PROFILES = 'user-profiles',
+  CROPS_SUNFLOWER = 'crops/sunflower',
 }
 
 export { Folders };
