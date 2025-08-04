@@ -147,6 +147,18 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
+  async updateLastActiveAt(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`user with id ${id} not found`);
+    }
+
+    user.lastActiveAt = new Date();
+
+    return this.userRepository.save(user);
+  }
+
   async delete(id: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id } });
 

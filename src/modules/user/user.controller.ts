@@ -102,6 +102,23 @@ export class UserController {
     return new ApiResponse(HttpStatus.OK, 'user updated successfully', user);
   }
 
+  @Patch(':id/last-active')
+  async updateLastActiveAt(
+    @Param('id') id: string,
+  ): Promise<ApiResponse<User>> {
+    const user = await this.userService.updateLastActiveAt(id);
+
+    if (!user) {
+      throw new NotFoundException(`user with id ${id} not found`);
+    }
+
+    return new ApiResponse(
+      HttpStatus.OK,
+      'user last active updated successfully',
+      user,
+    );
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async deleteUser(@Param('id') id: string): Promise<ApiResponse<void>> {
