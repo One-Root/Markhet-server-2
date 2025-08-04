@@ -33,6 +33,62 @@ export class LocationController {
     );
   }
 
+  @Get('states')
+  async getAllStates(): Promise<ApiResponse<string[]>> {
+    const locations = await this.locationService.getAllStates();
+    return new ApiResponse(
+      HttpStatus.OK,
+      'states fetched successfully',
+      locations,
+    );
+  }
+
+  @Get('districts')
+  async getDistrictsByState(
+    @Query('state') state: string,
+  ): Promise<ApiResponse<string[]>> {
+    const districts = await this.locationService.getDistrictsByState(state);
+    return new ApiResponse(
+      HttpStatus.OK,
+      'districts fetched successfully',
+      districts,
+    );
+  }
+
+  @Get('taluks')
+  async getTaluksByDistrict(
+    @Query('state') state: string,
+    @Query('district') district: string,
+  ): Promise<ApiResponse<string[]>> {
+    const taluks = await this.locationService.getTaluksByDistrict(
+      state,
+      district,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'taluks fetched successfully',
+      taluks,
+    );
+  }
+
+  @Get('villages')
+  async getVillagesByTaluk(
+    @Query('state') state: string,
+    @Query('district') district: string,
+    @Query('taluk') taluk: string,
+  ): Promise<ApiResponse<string[]>> {
+    const villages = await this.locationService.getVillagesByTaluk(
+      state,
+      district,
+      taluk,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'villages fetched successfully',
+      villages,
+    );
+  }
+
   @Get(':pincode')
   async getLocationByPincode(
     @Param('pincode') pincode: string,

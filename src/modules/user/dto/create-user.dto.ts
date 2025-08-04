@@ -46,6 +46,10 @@ export class CreateUserDto {
   @Length(6, 6)
   pincode: string;
 
+  @IsOptional()
+  @IsString()
+  profileImage: string;
+
   @IsEnum(Language)
   language: Language;
 

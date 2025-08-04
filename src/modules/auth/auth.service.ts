@@ -38,6 +38,7 @@ export class AuthService {
       deviceId,
       cropNames,
       knownLanguages,
+      profileImage,
       preferredPaymentModes,
     } = signupDto;
 
@@ -62,6 +63,7 @@ export class AuthService {
       cropNames,
       knownLanguages,
       preferredPaymentModes,
+      profileImage,
     });
 
     const session = await this.sessionService.createSession(user, deviceId);

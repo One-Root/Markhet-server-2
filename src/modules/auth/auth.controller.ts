@@ -4,10 +4,15 @@ import {
   Body,
   HttpStatus,
   Controller,
+  UploadedFile,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileService } from '../file/file.service';
+import { Folders } from 'src/common/enums/file.enum';
 
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -19,10 +24,23 @@ import { ApiResponse } from '../../common/interceptors/api-response.interceptor'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly fileService: FileService,
+  ) {}
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto): Promise<ApiResponse<AuthData>> {
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async signup(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() signupDto: SignupDto,
+  ): Promise<ApiResponse<AuthData>> {
+    const url = file
+      ? await this.fileService.upload(file, { folder: Folders.USER_PROFILES })
+      : null;
+
+    if (url) signupDto.profileImage = url;
+
     const { user, accessToken, refreshToken } =
       await this.authService.signup(signupDto);
 
