@@ -45,7 +45,7 @@ import { CustomRequest } from '../../common/interfaces/express.interface';
 import { ApiResponse } from '../../common/interceptors/api-response.interceptor';
 
 @Controller('crops')
-@UseGuards(JwtAuthGuard, SessionGuard)
+// @UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
 
@@ -66,17 +66,17 @@ export class CropController {
     );
   }
 
-  @Get()
-  async getCrops(
-    @Query() params: GetCropsQueryParamsDto,
-    @Req() request: CustomRequest,
-  ): Promise<ApiResponse<CropType[]>> {
-    const crops = await this.cropService.findAll(params, request);
+  @Get('available-types')
+  getAvailableCropTypes(): ApiResponse<{ name: string; value: string }[]> {
+    const availableCrops = Object.values(CropName).map((cropValue) => ({
+      name: cropValue, // User-friendly name, e.g., "Tender Coconut"
+      value: cropValue, // The actual enum value to be sent back to the backend
+    }));
 
     return new ApiResponse(
       HttpStatus.OK,
-      'crops retrieved successfully',
-      crops,
+      'Available crop types retrieved successfully',
+      availableCrops,
     );
   }
 
@@ -217,6 +217,16 @@ export class CropController {
     );
 
     return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
+  }
+
+  @Get('available-crops')
+  async getAvailableCrops(): Promise<ApiResponse<string[]>> {
+    const cropNames = Object.values(CropName);
+    return new ApiResponse(
+      HttpStatus.OK,
+      'available crops retrieved successfully',
+      cropNames,
+    );
   }
 
   @Delete(':id')

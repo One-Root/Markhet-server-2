@@ -34,6 +34,7 @@ import { CropType } from '../../common/types/crop.type';
 import { Language } from '../../common/enums/user.enum';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
 import { CustomRequest } from '../../common/interfaces/express.interface';
+import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 
 import {
   BananaVariety,
@@ -45,6 +46,8 @@ import {
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { EventPublisher } from '../event/publisher/event.publisher';
 import { EventQueue, NotificationEvent } from 'src/common/enums/event.enum';
+
+type CropWithImageUrl<T> = T & { imageUrl: string };
 
 @Injectable()
 export class CropService {
@@ -71,10 +74,24 @@ export class CropService {
     private readonly eventPublisher: EventPublisher,
   ) {}
 
+  /**
+   * [NEW] Private helper function to add an image URL to any crop object.
+   * Yeh code ko saaf rakhta hai.
+   */
+  private _addImageUrlToCrop<T extends CropType>(crop: T): CropWithImageUrl<T> {
+    if (!crop) {
+      return null;
+    }
+    return {
+      ...crop,
+      imageUrl: CROP_IMAGE_MAP[crop.cropName] || null, // Fallback to null if no image is found
+    };
+  }
+
   async findAll(
     params: Partial<GetCropsQueryParamsDto>,
     request?: CustomRequest,
-  ): Promise<CropType[]> {
+  ): Promise<CropWithImageUrl<CropType>[]> {
     const {
       cropName,
       page = 1,
@@ -89,7 +106,7 @@ export class CropService {
     const key = `crops:${repository.metadata.name}:${language}:${JSON.stringify(params)}`;
 
     // check if the data is in the cache
-    const data = await this.cacheService.get<CropType[]>(key);
+    const data = await this.cacheService.get<CropWithImageUrl<CropType>[]>(key);
 
     if (data && request) {
       request.fromCache = true;
@@ -157,17 +174,23 @@ export class CropService {
 
     const crops = await repository.find(options);
 
+    // Add image URL to each crop before returning and caching
+    const cropsWithImages = crops.map((crop) => this._addImageUrlToCrop(crop));
+
     if (request) {
       // cache the results for future queries
-      await this.cacheService.set(key, crops);
+      await this.cacheService.set(key, cropsWithImages);
 
       request.fromCache = false;
     }
 
-    return crops;
+    return cropsWithImages;
   }
 
-  async findOne(cropName: CropName, id: string): Promise<CropType> {
+  async findOne(
+    cropName: CropName,
+    id: string,
+  ): Promise<CropWithImageUrl<CropType>> {
     let crop: CropType;
 
     const repository = this.getRepository(cropName);
@@ -183,13 +206,13 @@ export class CropService {
       );
     }
 
-    return crop;
+    return this._addImageUrlToCrop(crop);
   }
 
   async createTenderCoconut(
     farmId: string,
     createFarmDto: CreateTenderCoconutDto,
-  ): Promise<TenderCoconut> {
+  ): Promise<CropWithImageUrl<TenderCoconut>> {
     const farm = await this.farmService.findOne(farmId);
 
     const repository = this.getRepository<TenderCoconut>(
@@ -202,13 +225,14 @@ export class CropService {
       cropName: CropName.TENDER_COCONUT,
     }) as TenderCoconut;
 
-    return repository.save(crop);
+    const savedCrop = await repository.save(crop);
+    return this._addImageUrlToCrop(savedCrop);
   }
 
   async createTurmeric(
     farmId: string,
     createTurmericDto: CreateTurmericDto,
-  ): Promise<Turmeric> {
+  ): Promise<CropWithImageUrl<Turmeric>> {
     const farm = await this.farmService.findOne(farmId);
 
     const repository = this.getRepository<Turmeric>(CropName.TURMERIC);
@@ -218,14 +242,14 @@ export class CropService {
       farm,
       cropName: CropName.TURMERIC,
     }) as Turmeric;
-
-    return repository.save(crop);
+    const savedCrop = await repository.save(crop);
+    return this._addImageUrlToCrop(savedCrop);
   }
 
   async createBanana(
     farmId: string,
     createBananaDto: CreateBananaDto,
-  ): Promise<Banana> {
+  ): Promise<CropWithImageUrl<Banana>> {
     const farm = await this.farmService.findOne(farmId);
 
     const repository = this.getRepository<Banana>(CropName.BANANA);
@@ -235,14 +259,14 @@ export class CropService {
       farm,
       cropName: CropName.BANANA,
     }) as Banana;
-
-    return repository.save(crop);
+    const savedCrop = await repository.save(crop);
+    return this._addImageUrlToCrop(savedCrop);
   }
 
   async createDryCoconut(
     farmId: string,
     createDryCoconutDto: CreateDryCoconutDto,
-  ): Promise<DryCoconut> {
+  ): Promise<CropWithImageUrl<DryCoconut>> {
     const farm = await this.farmService.findOne(farmId);
 
     const repository = this.getRepository<DryCoconut>(CropName.DRY_COCONUT);
@@ -253,7 +277,24 @@ export class CropService {
       cropName: CropName.DRY_COCONUT,
     }) as DryCoconut;
 
-    return repository.save(crop);
+    const savedCrop = await repository.save(crop);
+    return this._addImageUrlToCrop(savedCrop);
+  }
+
+  async createSunflower(
+    farmId: string,
+    createSunflowerDto: CreateSunflowerDto,
+  ): Promise<CropWithImageUrl<Sunflower>> {
+    const farm = await this.farmService.findOne(farmId);
+    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+
+    const crop = repository.create({
+      sunflowerVariety: createSunflowerDto.sunflowerVariety,
+      farm: farm,
+      cropName: CropName.SUNFLOWER,
+    }) as Sunflower;
+    const savedCrop = await repository.save(crop);
+    return this._addImageUrlToCrop(savedCrop);
   }
 
   async updateTenderCoconut(
@@ -352,22 +393,6 @@ export class CropService {
     }
 
     Object.assign(crop, updateDryCoconutDto);
-
-    return repository.save(crop);
-  }
-
-  async createSunflower(
-    farmId: string,
-    createSunflowerDto: CreateSunflowerDto,
-  ): Promise<Sunflower> {
-    const farm = await this.farmService.findOne(farmId);
-    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
-
-    const crop = repository.create({
-      sunflowerVariety: createSunflowerDto.sunflowerVariety,
-      farm: farm,
-      cropName: CropName.SUNFLOWER,
-    }) as Sunflower;
 
     return repository.save(crop);
   }
