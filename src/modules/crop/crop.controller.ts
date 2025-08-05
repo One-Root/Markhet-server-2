@@ -43,6 +43,7 @@ import { CropType } from '../../common/types/crop.type';
 import { CropName } from '../../common/enums/farm.enum';
 import { CustomRequest } from '../../common/interfaces/express.interface';
 import { ApiResponse } from '../../common/interceptors/api-response.interceptor';
+import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 
 @Controller('crops')
 // @UseGuards(JwtAuthGuard, SessionGuard)
@@ -67,16 +68,21 @@ export class CropController {
   }
 
   @Get('available-types')
-  getAvailableCropTypes(): ApiResponse<{ name: string; value: string }[]> {
-    const availableCrops = Object.values(CropName).map((cropValue) => ({
-      name: cropValue, // User-friendly name, e.g., "Tender Coconut"
-      value: cropValue, // The actual enum value to be sent back to the backend
-    }));
+  getAvailableCropTypes(): ApiResponse<
+    { name: string; value: string; imageUrl: string }[]
+  > {
+    const availableCropsWithImages = Object.values(CropName).map(
+      (cropValue) => ({
+        name: cropValue,
+        value: cropValue,
+        imageUrl: CROP_IMAGE_MAP[cropValue] || null,
+      }),
+    );
 
     return new ApiResponse(
       HttpStatus.OK,
-      'Available crop types retrieved successfully',
-      availableCrops,
+      'Available crop types with images retrieved successfully',
+      availableCropsWithImages,
     );
   }
 
