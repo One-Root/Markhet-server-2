@@ -43,8 +43,7 @@ export class SignupDto {
 
   @IsString()
   @IsNotEmpty()
-  @Length(6, 6)
-  pincode: string;
+  state: string;
 
   @IsEnum(Language)
   language: Language;

@@ -114,4 +114,24 @@ export class LocationController {
       location,
     );
   }
+
+  @Get('pincode/by-location')
+  async getPincodeByLocation(
+    @Query('state') state: string,
+    @Query('district') district: string,
+    @Query('taluk') taluk: string,
+    @Query('village') village: string,
+  ): Promise<ApiResponse<string>> {
+    const pincodes = await this.locationService.getPincodeByLocation(
+      state,
+      district,
+      taluk,
+      village,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'pincodes fetched successfully',
+      pincodes,
+    );
+  }
 }
