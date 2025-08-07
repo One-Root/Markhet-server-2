@@ -74,18 +74,34 @@ export class CropService {
     private readonly eventPublisher: EventPublisher,
   ) {}
 
-  /**
-   * [NEW] Private helper function to add an image URL to any crop object.
-   * Yeh code ko saaf rakhta hai.
-   */
   private _addImageUrlToCrop<T extends CropType>(crop: T): CropWithImageUrl<T> {
     if (!crop) {
       return null;
     }
     return {
       ...crop,
-      imageUrl: CROP_IMAGE_MAP[crop.cropName] || null, // Fallback to null if no image is found
+      imageUrl: CROP_IMAGE_MAP[crop.cropName] || null,
     };
+  }
+  async findOne(
+    cropName: CropName,
+    id: string,
+  ): Promise<CropWithImageUrl<CropType>> {
+    const repository = this.getRepository(cropName);
+
+    const crop = await repository.findOne({
+      where: { id },
+
+      relations: ['farm', 'farm.user'],
+    });
+
+    if (!crop) {
+      throw new NotFoundException(
+        `no crop found with crop id '${id}' and crop '${cropName}'`,
+      );
+    }
+
+    return this._addImageUrlToCrop(crop);
   }
 
   async findAll(
@@ -185,28 +201,6 @@ export class CropService {
     }
 
     return cropsWithImages;
-  }
-
-  async findOne(
-    cropName: CropName,
-    id: string,
-  ): Promise<CropWithImageUrl<CropType>> {
-    let crop: CropType;
-
-    const repository = this.getRepository(cropName);
-
-    crop = await repository.findOne({
-      where: { id },
-      relations: ['farm', 'farm.user'],
-    });
-
-    if (!crop) {
-      throw new NotFoundException(
-        `no crop found with crop id '${id}' and crop '${cropName}'`,
-      );
-    }
-
-    return this._addImageUrlToCrop(crop);
   }
 
   async createTenderCoconut(

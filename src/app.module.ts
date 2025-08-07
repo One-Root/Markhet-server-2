@@ -31,6 +31,7 @@ import { MarketPriceModule } from './modules/market-price/market-price.module';
 import { HarvestHistoryModule } from './modules/harvest-history/harvest-history.module';
 import { PriorityConfigModule } from './modules/priority-config/priority-config.module';
 import { NotificationTemplateModule } from './modules/notification-template/notification-template.module';
+import { CropCardModule } from './modules/crop-card/crop-card.module';
 
 import { AppController } from './app.controller';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -50,8 +51,8 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT) || 6379,
-        username: process.env.REDIS_USERNAME || 'default',
-        password: process.env.REDIS_PASSWORD || 'password',
+        // username: process.env.REDIS_USERNAME || 'default',
+        // password: process.env.REDIS_PASSWORD || 'password',
       },
     }),
 
@@ -77,7 +78,9 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     HarvestHistoryModule,
     PriorityConfigModule,
     NotificationTemplateModule,
+    CropModule,
 
+    CropCardModule,
     JwtConfigModule,
     DatabaseConfigModule,
   ],
