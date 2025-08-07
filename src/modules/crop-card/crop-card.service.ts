@@ -38,7 +38,7 @@ export class CropCardService {
     private readonly cropCardRepo: Repository<CropCard>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    // [IMPROVEMENT] Interest repository ko inject karein
+
     @InjectRepository(CropCardInterest)
     private readonly interestRepo: Repository<CropCardInterest>,
     private readonly userService: UserService,
@@ -46,7 +46,6 @@ export class CropCardService {
     private readonly cacheService: CacheService,
   ) {}
 
-  // [FIXED] cropName parameter add kiya gaya
   async createCropCard(
     farmerId: string,
     cropId: string,
@@ -68,7 +67,6 @@ export class CropCardService {
 
     const farmer = await this.userService.findById(farmerId);
 
-    // [IMPROVEMENT] Snapshot ki ek saaf copy banayein
     const snapshot = { ...crop };
     delete snapshot.farm;
 
@@ -84,7 +82,6 @@ export class CropCardService {
     return saved;
   }
 
-  // [FIXED] Interest ko database mein save kiya ja raha hai
   async expressInterest(
     cardId: string,
     buyerId: string,
@@ -123,17 +120,14 @@ export class CropCardService {
       };
     }
 
-    // Naya interest object banakar save karein
     const newInterest = this.interestRepo.create({
       buyer,
       cropCard,
     });
     await this.interestRepo.save(newInterest);
 
-    // Farmer ka dashboard cache clear karein
     await this.cacheService.delete(`dashboard:${cropCard.farmer.id}`);
 
-    // Naya count laane ke liye dobara find karein
     const updatedCard = await this.cropCardRepo.findOne({
       where: { id: cardId },
       relations: ['interests'],
@@ -146,7 +140,6 @@ export class CropCardService {
     };
   }
 
-  // [FIXED] Sahi tarike se interest remove kiya ja raha hai
   async removeInterest(
     cardId: string,
     buyerId: string,
@@ -170,7 +163,6 @@ export class CropCardService {
     const farmerId = interest.cropCard.farmer.id;
     await this.interestRepo.remove(interest);
 
-    // Cache clear karein
     await this.cacheService.delete(`dashboard:${farmerId}`);
 
     const updatedCard = await this.cropCardRepo.findOne({
@@ -233,7 +225,6 @@ export class CropCardService {
         status: card.status,
         createdAt: card.createdAt,
         interestsCount: card.interests?.length || 0,
-        // [IMPROVEMENT] Poora crop object hataya gaya
       };
     });
 

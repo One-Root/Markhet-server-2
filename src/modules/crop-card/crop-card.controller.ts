@@ -11,7 +11,7 @@ import {
   ParseUUIDPipe,
   ValidationPipe,
   Delete,
-  Query, // [FIX] Query decorator ko import karein
+  Query,
 } from '@nestjs/common';
 import { CropCardService } from './crop-card.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,7 +22,7 @@ import {
   CropCardData,
   CropCardUpdateData,
 } from '../../common/types/crop-card.type';
-import { CropName } from 'src/common/enums/farm.enum'; // [FIX] CropName enum ko import karein
+import { CropName } from 'src/common/enums/farm.enum';
 
 @Controller('crop-cards')
 @UseGuards(JwtAuthGuard, SessionGuard)
@@ -41,19 +41,18 @@ export class CropCardController {
     );
   }
 
-  // [FIXED] createCropCard endpoint ab cropName ko query se lega
   @Post(':cropId')
   async createCropCard(
     @Param('cropId', ParseUUIDPipe) cropId: string,
-    @Query('cropName') cropName: CropName, // <-- Yahan cropName ko query parameter se lein
+    @Query('cropName') cropName: CropName,
     @Req() req: CustomRequest,
   ) {
     const farmerId = req.user.id;
-    // Ab service ko teeno zaroori arguments pass karein
+
     const newCard = await this.cropCardService.createCropCard(
       farmerId,
       cropId,
-      cropName, // <-- Teesra argument yahan pass kiya gaya
+      cropName,
     );
     return new ApiResponse(
       HttpStatus.CREATED,

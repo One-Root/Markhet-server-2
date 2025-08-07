@@ -46,7 +46,7 @@ import { ApiResponse } from '../../common/interceptors/api-response.interceptor'
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 
 @Controller('crops')
-// @UseGuards(JwtAuthGuard, SessionGuard)
+@UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
 

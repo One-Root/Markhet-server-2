@@ -121,7 +121,6 @@ export class CropService {
 
     const key = `crops:${repository.metadata.name}:${language}:${JSON.stringify(params)}`;
 
-    // check if the data is in the cache
     const data = await this.cacheService.get<CropWithImageUrl<CropType>[]>(key);
 
     if (data && request) {
@@ -132,12 +131,10 @@ export class CropService {
 
     const skip = (page - 1) * limit;
 
-    // initialize conditions
     const cropConditions: Record<string, any> = {};
     const farmConditions: Record<string, any> = {};
     const userConditions: Record<string, any> = {};
 
-    // parse filters
     for (const [key, value] of Object.entries(rest)) {
       if (key.startsWith('farm__user__')) {
         const userField = key.replace('farm__user__', '');
@@ -164,7 +161,6 @@ export class CropService {
       }
     }
 
-    // combine conditions
     const conditions: Record<string, any> = {
       ...(Object.keys(cropConditions).length && cropConditions),
       farm:
@@ -190,11 +186,9 @@ export class CropService {
 
     const crops = await repository.find(options);
 
-    // Add image URL to each crop before returning and caching
     const cropsWithImages = crops.map((crop) => this._addImageUrlToCrop(crop));
 
     if (request) {
-      // cache the results for future queries
       await this.cacheService.set(key, cropsWithImages);
 
       request.fromCache = false;
