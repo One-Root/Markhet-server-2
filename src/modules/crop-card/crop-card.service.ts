@@ -269,4 +269,15 @@ export class CropCardService {
     if (!card) throw new NotFoundException(`Crop card not found`);
     return card;
   }
+
+  /**
+   * Returns a hardcoded ad object.
+   * Aap imageUrl aur redirectUrl ko yahan aasani se badal sakte hain.
+   */
+  async getActiveAd(): Promise<{ imageUrl: string; redirectUrl: string }> {
+    return {
+      imageUrl: 'https://i.imgur.com/N6sZatC.png', // Aapki ad image ka URL
+      redirectUrl: 'https://www.syngenta.co.in/crop-protection/seeds/corn', // Jab user ad par click karega toh yahan jaayega
+    };
+  }
 }

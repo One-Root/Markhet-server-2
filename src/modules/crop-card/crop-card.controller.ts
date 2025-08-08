@@ -41,6 +41,16 @@ export class CropCardController {
     );
   }
 
+  @Get('active-ad')
+  async getActiveAd() {
+    const ad = await this.cropCardService.getActiveAd();
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Active ad retrieved successfully',
+      ad,
+    );
+  }
+
   @Post(':cropId')
   async createCropCard(
     @Param('cropId', ParseUUIDPipe) cropId: string,
