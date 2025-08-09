@@ -57,7 +57,11 @@ export class CropCardService {
     }
 
     const existingCard = await this.cropCardRepo.findOne({
-      where: { crop: { id: cropId } },
+      where: {
+        crop: { id: cropId },
+        status: CropCardStatus.STARTED,
+        farmer: { id: farmerId },
+      },
     });
     if (existingCard) {
       throw new BadRequestException(
@@ -67,8 +71,9 @@ export class CropCardService {
 
     const farmer = await this.userService.findById(farmerId);
 
-    const snapshot = { ...crop };
+    const snapshot = JSON.parse(JSON.stringify(crop));
     delete snapshot.farm;
+    delete snapshot.farmer;
 
     const card = this.cropCardRepo.create({
       farmer,
