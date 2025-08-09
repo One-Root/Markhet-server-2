@@ -110,4 +110,37 @@ export class LocationService {
       );
     }
   }
+
+  async getPincodeByLocation(
+    state: string,
+    district: string,
+    taluk: string,
+    village: string,
+  ): Promise<string> {
+    const s = state.trim();
+    const d = district.trim();
+    const t = taluk.trim();
+    const v = village.trim();
+
+    const location = await this.locationRepository
+      .createQueryBuilder('location')
+      .where('LOWER(TRIM(location.state)) = LOWER(:state)', { state: s })
+      .andWhere('LOWER(TRIM(location.district)) = LOWER(:district)', {
+        district: d,
+      })
+      .andWhere('LOWER(TRIM(location.taluk)) = LOWER(:taluk)', { taluk: t })
+      .andWhere('LOWER(TRIM(location.village)) = LOWER(:village)', {
+        village: v,
+      })
+      .getOne();
+
+    if (!location) {
+      throw new HttpException(
+        `No pincode found for location: ${v}, ${t}, ${d}, ${s}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return location.pincode;
+  }
 }
