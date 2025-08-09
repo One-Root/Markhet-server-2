@@ -50,6 +50,20 @@ import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 export class CropController {
   constructor(private readonly cropService: CropService) {}
 
+  @Get()
+  async getCrops(
+    @Query() params: GetCropsQueryParamsDto,
+    @Req() request: CustomRequest,
+  ): Promise<ApiResponse<CropType[]>> {
+    const crops = await this.cropService.findAll(params, request);
+
+    return new ApiResponse(
+      HttpStatus.OK,
+      'crops retrieved successfully',
+      crops,
+    );
+  }
+
   @Post(':farmId/sunflower')
   async createSunflowerCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
