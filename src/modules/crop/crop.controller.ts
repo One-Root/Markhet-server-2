@@ -12,6 +12,9 @@ import {
   Controller,
   HttpStatus,
   ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 
 import {
@@ -23,6 +26,7 @@ import {
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SessionGuard } from '../session/guards/session.guard';
@@ -256,5 +260,40 @@ export class CropController {
     @Query() params: { cropName: CropName },
   ) {
     await this.cropService.remove(id, params.cropName);
+  }
+  @Post(':cropName/:id/upload')
+  @UseInterceptors(FilesInterceptor('images'))
+  async uploadCropImages(
+    @Param('cropName') cropName: CropName,
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('coordinates') coordinatesJson?: string,
+  ) {
+    let coordinates: [number, number] | undefined;
+
+    if (coordinatesJson) {
+      try {
+        const parsed = JSON.parse(coordinatesJson);
+        if (
+          !Array.isArray(parsed) ||
+          parsed.length !== 2 ||
+          !parsed.every((num) => typeof num === 'number')
+        ) {
+          throw new Error();
+        }
+        coordinates = parsed as [number, number];
+      } catch {
+        throw new BadRequestException(
+          'Invalid coordinates format. Must be JSON array of two numbers.',
+        );
+      }
+    }
+
+    return this.cropService.uploadCropImagesAndCoordinates(
+      cropName,
+      id,
+      files,
+      coordinates,
+    );
   }
 }

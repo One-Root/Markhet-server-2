@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { Repository } from 'typeorm';
-
+import { Repository, DataSource } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 
 import {
@@ -30,11 +34,15 @@ import { GetCropsQueryParamsDto } from './dto/get-crops-query-params.dto';
 import { CreateSunflowerDto } from './dto/create-sunflower.dto';
 import { UpdateSunflowerDto } from './dto/update-sunflower.dto';
 
-import { CropType } from '../../common/types/crop.type';
-import { Language } from '../../common/enums/user.enum';
-import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
+import { Crop } from '@one-root/markhet-core';
+import { FileService } from '../file/file.service';
+import { Folders } from 'src/common/enums/file.enum';
 import { CustomRequest } from '../../common/interfaces/express.interface';
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
+import { CropType } from '../../common/types/crop.type';
+import { Language } from '../../common/enums/user.enum';
+import { applyOperator } from '../../common/utils/apply-operator.util';
+import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
 
 import {
   BananaVariety,
@@ -43,46 +51,51 @@ import {
   TenderCoconutVariety,
   SunflowerVariety,
 } from '../../common/enums/crop.enum';
-import { applyOperator } from '../../common/utils/apply-operator.util';
-import { EventPublisher } from '../event/publisher/event.publisher';
-import { EventQueue, NotificationEvent } from 'src/common/enums/event.enum';
 
 type CropWithImageUrl<T> = T & { imageUrl: string };
 
+const ALLOWED_IMAGE_MIMETYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB per file (adjustable)
+const MAX_IMAGES_PER_CROP = 10;
+const UPLOAD_CONCURRENCY = 6;
+
 @Injectable()
 export class CropService {
+  private readonly logger = new Logger(CropService.name);
+
   constructor(
     @InjectRepository(TenderCoconut)
-    private readonly tenderCoconutRepository: Repository<TenderCoconut>,
+    private readonly tenderCoconutRepoInjected: Repository<TenderCoconut>,
 
     @InjectRepository(Turmeric)
-    private readonly turmericRepository: Repository<Turmeric>,
+    private readonly turmericRepoInjected: Repository<Turmeric>,
 
     @InjectRepository(Banana)
-    private readonly bananaRepository: Repository<Banana>,
+    private readonly bananaRepoInjected: Repository<Banana>,
 
     @InjectRepository(DryCoconut)
-    private readonly dryCoconutRepository: Repository<DryCoconut>,
+    private readonly dryCoconutRepoInjected: Repository<DryCoconut>,
 
     @InjectRepository(Sunflower)
-    private readonly sunflowerRepository: Repository<Sunflower>,
+    private readonly sunflowerRepoInjected: Repository<Sunflower>,
 
     private readonly farmService: FarmService,
 
     private readonly cacheService: CacheService,
 
-    private readonly eventPublisher: EventPublisher,
+    private readonly fileService: FileService,
+    private readonly dataSource: DataSource,
+    @InjectRepository(Crop) private readonly cropRepo: Repository<Crop>,
   ) {}
 
   private _addImageUrlToCrop<T extends CropType>(crop: T): CropWithImageUrl<T> {
-    if (!crop) {
-      return null;
-    }
+    if (!crop) return null;
     return {
       ...crop,
       imageUrl: CROP_IMAGE_MAP[crop.cropName] || null,
     };
   }
+
   async findOne(
     cropName: CropName,
     id: string,
@@ -91,7 +104,6 @@ export class CropService {
 
     const crop = await repository.findOne({
       where: { id },
-
       relations: ['farm', 'farm.user'],
     });
 
@@ -119,13 +131,14 @@ export class CropService {
 
     const language = request ? request.headers['accept-language'] : Language.EN;
 
-    const key = `crops:${repository.metadata.name}:${language}:${JSON.stringify(params)}`;
+    const key = `crops:${repository.metadata.name}:${language}:${JSON.stringify(
+      params,
+    )}`;
 
     const data = await this.cacheService.get<CropWithImageUrl<CropType>[]>(key);
 
     if (data && request) {
       request.fromCache = true;
-
       return data;
     }
 
@@ -135,26 +148,21 @@ export class CropService {
     const farmConditions: Record<string, any> = {};
     const userConditions: Record<string, any> = {};
 
-    for (const [key, value] of Object.entries(rest)) {
-      if (key.startsWith('farm__user__')) {
-        const userField = key.replace('farm__user__', '');
-
+    for (const [k, value] of Object.entries(rest)) {
+      if (k.startsWith('farm__user__')) {
+        const userField = k.replace('farm__user__', '');
         const [field, operator] = userField.split('__');
-
         userConditions[field] = operator
           ? applyOperator(operator, value)
           : value;
-      } else if (key.startsWith('farm__')) {
-        const farmField = key.replace('farm__', '');
-
+      } else if (k.startsWith('farm__')) {
+        const farmField = k.replace('farm__', '');
         const [field, operator] = farmField.split('__');
-
         farmConditions[field] = operator
           ? applyOperator(operator, value)
           : value;
       } else {
-        const [field, operator] = key.split('__');
-
+        const [field, operator] = k.split('__');
         cropConditions[field] = operator
           ? applyOperator(operator, value)
           : value;
@@ -190,7 +198,6 @@ export class CropService {
 
     if (request) {
       await this.cacheService.set(key, cropsWithImages);
-
       request.fromCache = false;
     }
 
@@ -199,236 +206,149 @@ export class CropService {
 
   async createTenderCoconut(
     farmId: string,
-    createFarmDto: CreateTenderCoconutDto,
+    dto: CreateTenderCoconutDto,
   ): Promise<CropWithImageUrl<TenderCoconut>> {
     const farm = await this.farmService.findOne(farmId);
-
     const repository = this.getRepository<TenderCoconut>(
       CropName.TENDER_COCONUT,
     );
-
     const crop = repository.create({
-      ...createFarmDto,
+      ...dto,
       farm,
       cropName: CropName.TENDER_COCONUT,
     }) as TenderCoconut;
-
-    const savedCrop = await repository.save(crop);
-    return this._addImageUrlToCrop(savedCrop);
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
   }
 
   async createTurmeric(
     farmId: string,
-    createTurmericDto: CreateTurmericDto,
+    dto: CreateTurmericDto,
   ): Promise<CropWithImageUrl<Turmeric>> {
     const farm = await this.farmService.findOne(farmId);
-
     const repository = this.getRepository<Turmeric>(CropName.TURMERIC);
-
     const crop = repository.create({
-      ...createTurmericDto,
+      ...dto,
       farm,
       cropName: CropName.TURMERIC,
     }) as Turmeric;
-    const savedCrop = await repository.save(crop);
-    return this._addImageUrlToCrop(savedCrop);
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
   }
 
   async createBanana(
     farmId: string,
-    createBananaDto: CreateBananaDto,
+    dto: CreateBananaDto,
   ): Promise<CropWithImageUrl<Banana>> {
     const farm = await this.farmService.findOne(farmId);
-
     const repository = this.getRepository<Banana>(CropName.BANANA);
-
     const crop = repository.create({
-      ...createBananaDto,
+      ...dto,
       farm,
       cropName: CropName.BANANA,
     }) as Banana;
-    const savedCrop = await repository.save(crop);
-    return this._addImageUrlToCrop(savedCrop);
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
   }
 
   async createDryCoconut(
     farmId: string,
-    createDryCoconutDto: CreateDryCoconutDto,
+    dto: CreateDryCoconutDto,
   ): Promise<CropWithImageUrl<DryCoconut>> {
     const farm = await this.farmService.findOne(farmId);
-
     const repository = this.getRepository<DryCoconut>(CropName.DRY_COCONUT);
-
     const crop = repository.create({
-      ...createDryCoconutDto,
+      ...dto,
       farm,
       cropName: CropName.DRY_COCONUT,
     }) as DryCoconut;
-
-    const savedCrop = await repository.save(crop);
-    return this._addImageUrlToCrop(savedCrop);
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
   }
 
   async createSunflower(
     farmId: string,
-    createSunflowerDto: CreateSunflowerDto,
+    dto: CreateSunflowerDto,
   ): Promise<CropWithImageUrl<Sunflower>> {
     const farm = await this.farmService.findOne(farmId);
     const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
-
     const crop = repository.create({
-      sunflowerVariety: createSunflowerDto.sunflowerVariety,
-      farm: farm,
+      sunflowerVariety: dto.sunflowerVariety,
+      farm,
       cropName: CropName.SUNFLOWER,
     }) as Sunflower;
-    const savedCrop = await repository.save(crop);
-    return this._addImageUrlToCrop(savedCrop);
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
   }
 
   async updateTenderCoconut(
     id: string,
-    updateTenderCoconutDto: UpdateTenderCoconutDto,
+    dto: UpdateTenderCoconutDto,
   ): Promise<TenderCoconut> {
     const repository = this.getRepository<TenderCoconut>(
       CropName.TENDER_COCONUT,
     );
-
     const crop = await repository.findOne({
       where: { id },
       relations: ['farm', 'farm.user'],
     });
-
-    if (!crop) {
+    if (!crop)
       throw new NotFoundException(`tender coconut with id ${id} not found`);
-    }
-
-    // console.log(
-    //   `updating tender coconut with id ${id}`,
-    //   updateTenderCoconutDto,
-    //   crop.farm.user.mobileNumber,
-    // );
-
-    // const options = { removeOnComplete: true, removeOnFail: true };
-
-    // const isToggle =
-    //   crop.isReadyToHarvest !== updateTenderCoconutDto.isReadyToHarvest;
-
-    // if (isToggle) {
-    //   await this.eventPublisher.publish(
-    //     {
-    //       queue: EventQueue.NOTIFICATION,
-    //       type: NotificationEvent.CHATRACE_RTH,
-    //       data: {
-    //         number: crop.farm.user.mobileNumber,
-    //         name: crop.farm.user.name,
-    //         status: updateTenderCoconutDto.isReadyToHarvest,
-    //         cropName: CropName.TENDER_COCONUT,
-    //       },
-    //     },
-    //     options,
-    //   );
-    // }
-
-    Object.assign(crop, updateTenderCoconutDto);
-
+    Object.assign(crop, dto);
     return repository.save(crop);
   }
 
-  async updateTurmeric(
-    id: string,
-    updateTurmericDto: UpdateTurmericDto,
-  ): Promise<Turmeric> {
-    const repository = this.getRepository<Turmeric>(CropName.TURMERIC);
-
-    const crop = await repository.findOne({ where: { id } });
-
-    if (!crop) {
-      throw new NotFoundException(`turmeric with id ${id} not found`);
-    }
-
-    Object.assign(crop, updateTurmericDto);
-
-    return repository.save(crop);
+  async updateTurmeric(id: string, dto: UpdateTurmericDto): Promise<Turmeric> {
+    const repo = this.getRepository<Turmeric>(CropName.TURMERIC);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop) throw new NotFoundException(`turmeric with id ${id} not found`);
+    Object.assign(crop, dto);
+    return repo.save(crop);
   }
 
-  async updateBanana(
-    id: string,
-    updateBananaDto: UpdateBananaDto,
-  ): Promise<Banana> {
-    const repository = this.getRepository<Banana>(CropName.BANANA);
-
-    const crop = await repository.findOne({ where: { id } });
-
-    if (!crop) {
-      throw new NotFoundException(`banana with id ${id} not found`);
-    }
-
-    Object.assign(crop, updateBananaDto);
-
-    return repository.save(crop);
+  async updateBanana(id: string, dto: UpdateBananaDto): Promise<Banana> {
+    const repo = this.getRepository<Banana>(CropName.BANANA);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop) throw new NotFoundException(`banana with id ${id} not found`);
+    Object.assign(crop, dto);
+    return repo.save(crop);
   }
 
   async updateDryCoconut(
     id: string,
-    updateDryCoconutDto: UpdateDryCoconutDto,
+    dto: UpdateDryCoconutDto,
   ): Promise<DryCoconut> {
-    const repository = this.getRepository<DryCoconut>(CropName.DRY_COCONUT);
-
-    const crop = await repository.findOne({ where: { id } });
-
-    if (!crop) {
+    const repo = this.getRepository<DryCoconut>(CropName.DRY_COCONUT);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop)
       throw new NotFoundException(`dry coconut with id ${id} not found`);
-    }
-
-    Object.assign(crop, updateDryCoconutDto);
-
-    return repository.save(crop);
+    Object.assign(crop, dto);
+    return repo.save(crop);
   }
 
   async updateSunflower(
     id: string,
-    updateSunflowerDto: UpdateSunflowerDto,
+    dto: UpdateSunflowerDto,
   ): Promise<Sunflower> {
-    const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
-
-    const crop = await repository.findOne({ where: { id } });
-
-    if (!crop) {
-      throw new NotFoundException(`sunflower with id ${id} not found`);
-    }
-
-    Object.assign(crop, updateSunflowerDto);
-
-    return repository.save(crop);
+    const repo = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
+    Object.assign(crop, dto);
+    return repo.save(crop);
   }
 
   isValidVariety(cropName: CropName, cropVariety: string): boolean {
     switch (cropName) {
       case CropName.TENDER_COCONUT:
-        return Object.values(TenderCoconutVariety).includes(
-          cropVariety as TenderCoconutVariety,
-        );
-
+        return Object.values(TenderCoconutVariety).includes(cropVariety as any);
       case CropName.TURMERIC:
-        return Object.values(TurmericVariety).includes(
-          cropVariety as TurmericVariety,
-        );
-
+        return Object.values(TurmericVariety).includes(cropVariety as any);
       case CropName.BANANA:
-        return Object.values(BananaVariety).includes(
-          cropVariety as BananaVariety,
-        );
-
+        return Object.values(BananaVariety).includes(cropVariety as any);
       case CropName.DRY_COCONUT:
-        return Object.values(DryCoconutVariety).includes(
-          cropVariety as DryCoconutVariety,
-        );
-
+        return Object.values(DryCoconutVariety).includes(cropVariety as any);
       case CropName.SUNFLOWER:
-        return Object.values(SunflowerVariety).includes(
-          cropVariety as SunflowerVariety,
-        );
-
+        return Object.values(SunflowerVariety).includes(cropVariety as any);
       default:
         return false;
     }
@@ -437,20 +357,15 @@ export class CropService {
   getRepository<T extends CropType>(cropName: CropName): Repository<T> {
     switch (cropName) {
       case CropName.TENDER_COCONUT:
-        return this.tenderCoconutRepository as Repository<T>;
-
+        return this.tenderCoconutRepoInjected as Repository<T>;
       case CropName.TURMERIC:
-        return this.turmericRepository as Repository<T>;
-
+        return this.turmericRepoInjected as Repository<T>;
       case CropName.BANANA:
-        return this.bananaRepository as Repository<T>;
-
+        return this.bananaRepoInjected as Repository<T>;
       case CropName.DRY_COCONUT:
-        return this.dryCoconutRepository as Repository<T>;
-
+        return this.dryCoconutRepoInjected as Repository<T>;
       case CropName.SUNFLOWER:
-        return this.sunflowerRepository as Repository<T>;
-
+        return this.sunflowerRepoInjected as Repository<T>;
       default:
         throw new Error(`repository for crop '${cropName}' not found`);
     }
@@ -459,22 +374,189 @@ export class CropService {
   async bulkUpdate(updates: BulkUpdate[]): Promise<void> {
     const promises = updates.map(({ id, cropName, ...rest }) => {
       const repository = this.getRepository(cropName);
-
-      repository.update(id, { ...rest });
+      return repository.update(id, { ...rest });
     });
-
     await Promise.all(promises);
   }
 
   async remove(id: string, cropName: CropName): Promise<void> {
     const crop = await this.findOne(cropName, id);
+    if (!crop) throw new NotFoundException(`crop with id ${id} not found`);
+    const repository = this.getRepository(cropName);
+    await repository.remove(crop as any);
+  }
 
+  private getRepositoryByName(cropName: CropName): Repository<any> {
+    switch (cropName) {
+      case CropName.TENDER_COCONUT:
+        return this.dataSource.getRepository(TenderCoconut);
+      case CropName.TURMERIC:
+        return this.dataSource.getRepository(Turmeric);
+      case CropName.BANANA:
+        return this.dataSource.getRepository(Banana);
+      case CropName.DRY_COCONUT:
+        return this.dataSource.getRepository(DryCoconut);
+      case CropName.SUNFLOWER:
+        return this.dataSource.getRepository(Sunflower);
+      default:
+        throw new Error(`No repository found for cropName: ${cropName}`);
+    }
+  }
+
+  private getFolderByCropName(cropName: CropName): Folders {
+    switch (cropName) {
+      case CropName.TENDER_COCONUT:
+        return Folders.CROPS_TENDER_COCONUT;
+      case CropName.TURMERIC:
+        return Folders.CROPS_TURMERIC;
+      case CropName.BANANA:
+        return Folders.CROPS_BANANA;
+      case CropName.DRY_COCONUT:
+        return Folders.CROPS_DRY_COCONUT;
+      case CropName.SUNFLOWER:
+        return Folders.CROPS_SUNFLOWER;
+      default:
+        throw new Error(`No folder mapping found for cropName: ${cropName}`);
+    }
+  }
+
+  private validateFiles(files: Express.Multer.File[]) {
+    if (!files || !files.length) {
+      throw new BadRequestException('No files provided for upload');
+    }
+    for (const f of files) {
+      if (!ALLOWED_IMAGE_MIMETYPES.includes(f.mimetype)) {
+        throw new BadRequestException(
+          `Invalid file type ${f.originalname} - only JPEG/PNG/WEBP are allowed`,
+        );
+      }
+      if (f.size > MAX_FILE_SIZE_BYTES) {
+        throw new BadRequestException(
+          `File ${f.originalname} exceeds max file size of ${MAX_FILE_SIZE_BYTES} bytes`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Upload crop images and optionally set coordinates
+   * - validates files
+   * - enforces MAX_IMAGES_PER_CROP
+   * - uploads in parallel (bounded concurrency)
+   * - saves to DB inside a transaction
+   */
+  async uploadCropImagesAndCoordinates(
+    cropName: CropName,
+    id: string,
+    files: Express.Multer.File[],
+    coordinates?: [number, number],
+  ) {
+    const repository = this.getRepositoryByName(cropName);
+    console.log(cropName);
+
+    // Load current entity (include images/coordinates fields if they exist)
+    const crop = await repository.findOne({ where: { id } });
     if (!crop) {
-      throw new NotFoundException(`crop with id ${id} not found`);
+      throw new NotFoundException(`${cropName} with id ${id} not found`);
     }
 
-    const repository = this.getRepository(cropName);
+    // Validate files
+    this.validateFiles(files);
 
-    await repository.remove(crop);
+    // Current images
+    const currentImages: string[] = Array.isArray(crop.images)
+      ? crop.images
+      : [];
+
+    // Check max images constraint
+    if (currentImages.length + files.length > MAX_IMAGES_PER_CROP) {
+      throw new BadRequestException(
+        `A crop can have maximum ${MAX_IMAGES_PER_CROP} images. Current images: ${currentImages.length}`,
+      );
+    }
+
+    const folder = this.getFolderByCropName(cropName);
+
+    // Upload helper: chunked/limited concurrency
+    const uploadFile = async (file: Express.Multer.File) => {
+      // Optionally: process image (resize/compress) before upload using 'sharp'
+      // Example: const processedBuffer = await sharp(file.buffer).resize({ width: 1600 }).toBuffer();
+      // Then pass processedBuffer to your file service if supported.
+      // For now, we pass the file as-is. FileService.upload should accept buffer or multer file.
+      try {
+        return await this.fileService.upload(file, { folder });
+      } catch (err) {
+        this.logger.error('file upload failed', err);
+        throw new InternalServerErrorException('Failed to upload file');
+      }
+    };
+
+    // Upload files in parallel with Promise.all (if you need bounded concurrency, implement a pool)
+    // For simplicity we use Promise.all here but cap concurrency if needed.
+    let uploadedUrls: string[] = [];
+    try {
+      // If you want safer concurrency, implement chunking:
+      const chunks: Express.Multer.File[][] = [];
+      for (let i = 0; i < files.length; i += UPLOAD_CONCURRENCY) {
+        chunks.push(files.slice(i, i + UPLOAD_CONCURRENCY));
+      }
+      for (const chunk of chunks) {
+        const urls = await Promise.all(chunk.map((f) => uploadFile(f)));
+        uploadedUrls = uploadedUrls.concat(urls);
+      }
+    } catch (err) {
+      this.logger.error('uploadCropImagesAndCoordinates: upload error', err);
+      throw err; // already converted in uploadFile
+    }
+
+    // Persist changes inside a transaction
+    try {
+      await this.dataSource.transaction(async (manager) => {
+        const repoTx = manager.getRepository(repository.target);
+
+        // re-fetch inside tx to avoid stale state
+        const cropTx = await repoTx.findOne({ where: { id } });
+
+        if (!cropTx) {
+          throw new NotFoundException(
+            `${cropName} with id ${id} not found (tx)`,
+          );
+        }
+
+        // Append images if entity supports 'images'
+        if ('images' in cropTx && Array.isArray(cropTx.images)) {
+          cropTx.images = [...(cropTx.images || []), ...uploadedUrls];
+        }
+
+        // Optionally set geo coordinates if entity supports it
+        if (coordinates && 'cropCoordinates' in cropTx) {
+          cropTx.cropCoordinates = {
+            type: 'Point',
+            coordinates,
+          };
+        }
+
+        await repoTx.save(cropTx);
+      });
+    } catch (err) {
+      this.logger.error(
+        'uploadCropImagesAndCoordinates: db transaction failed',
+        err,
+      );
+      // Ideally remove any uploaded files on failure (garbage collection) - implement fileService.deleteMany(urls)
+      // Attempt best-effort cleanup:
+      try {
+        // if (uploadedUrls.length && this.fileService.deleteMany) {
+        //   await this.fileService.deleteMany(uploadedUrls);
+        // }
+      } catch (cleanupErr) {
+        this.logger.warn('cleanup failed for uploaded files', cleanupErr);
+      }
+      throw new InternalServerErrorException('Failed to save uploaded images');
+    }
+
+    // Return the updated crop (fresh)
+    const updated = await repository.findOne({ where: { id } });
+    return updated;
   }
 }
