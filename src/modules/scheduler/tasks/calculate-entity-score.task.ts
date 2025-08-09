@@ -21,9 +21,7 @@ export class CalculateEntityScoreTask {
 
   constructor(
     private readonly cropService: CropService,
-
     private readonly userService: UserService,
-
     private readonly priorityConfigService: PriorityConfigService,
   ) {}
 
@@ -77,7 +75,6 @@ export class CalculateEntityScoreTask {
 
       const updates: BulkUpdate[] = users.map((user) => {
         const score = this.priorityConfigService.calculateScore(user, configs);
-
         return { id: user.id, score };
       });
 
@@ -123,7 +120,15 @@ export class CalculateEntityScoreTask {
             configs,
           );
 
-          return { id: crop.id, score, cropName };
+          let isPremium = false;
+          if (
+            cropName === CropName.TENDER_COCONUT &&
+            ((crop.isReadyToHarvest && crop.isVerified) || crop.quantity > 500)
+          ) {
+            isPremium = true;
+          }
+
+          return { id: crop.id, score, cropName, isPremium };
         });
 
         await this.cropService.bulkUpdate(updates);

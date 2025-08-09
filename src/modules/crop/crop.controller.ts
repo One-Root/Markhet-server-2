@@ -46,9 +46,23 @@ import { ApiResponse } from '../../common/interceptors/api-response.interceptor'
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 
 @Controller('crops')
-// @UseGuards(JwtAuthGuard, SessionGuard)
+@UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
+
+  @Get()
+  async getCrops(
+    @Query() params: GetCropsQueryParamsDto,
+    @Req() request: CustomRequest,
+  ): Promise<ApiResponse<CropType[]>> {
+    const crops = await this.cropService.findAll(params, request);
+
+    return new ApiResponse(
+      HttpStatus.OK,
+      'crops retrieved successfully',
+      crops,
+    );
+  }
 
   @Post(':farmId/sunflower')
   async createSunflowerCrop(
