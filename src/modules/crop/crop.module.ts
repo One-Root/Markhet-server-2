@@ -19,6 +19,7 @@ import { SessionModule } from '../session/session.module';
 import { NotificationModule } from '../notification/notification.module';
 
 import { CropEntitySubscriber } from './subscribers/crop.subscriber';
+import { FileService } from '../file/file.service';
 import { EventModule } from '../event/event.module';
 
 @Module({
@@ -38,7 +39,7 @@ import { EventModule } from '../event/event.module';
     NotificationModule,
   ],
   controllers: [CropController],
-  providers: [CropService, CropEntitySubscriber],
-  exports: [CropService],
+  providers: [CropService, CropEntitySubscriber, FileService],
+  exports: [CropService, FileService],
 })
 export class CropModule {}
