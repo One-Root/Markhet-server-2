@@ -43,6 +43,7 @@ import { CropType } from '../../common/types/crop.type';
 import { Language } from '../../common/enums/user.enum';
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
+import { Farm } from '@one-root/markhet-core';
 
 import {
   BananaVariety,
@@ -78,6 +79,9 @@ export class CropService {
 
     @InjectRepository(Sunflower)
     private readonly sunflowerRepoInjected: Repository<Sunflower>,
+
+    @InjectRepository(Farm)
+    private readonly farmRepository: Repository<Farm>,
 
     private readonly farmService: FarmService,
 
@@ -438,13 +442,6 @@ export class CropService {
     }
   }
 
-  /**
-   * Upload crop images and optionally set coordinates
-   * - validates files
-   * - enforces MAX_IMAGES_PER_CROP
-   * - uploads in parallel (bounded concurrency)
-   * - saves to DB inside a transaction
-   */
   async uploadCropImagesAndCoordinates(
     cropName: CropName,
     id: string,
@@ -454,21 +451,17 @@ export class CropService {
     const repository = this.getRepositoryByName(cropName);
     console.log(cropName);
 
-    // Load current entity (include images/coordinates fields if they exist)
     const crop = await repository.findOne({ where: { id } });
     if (!crop) {
       throw new NotFoundException(`${cropName} with id ${id} not found`);
     }
 
-    // Validate files
     this.validateFiles(files);
 
-    // Current images
     const currentImages: string[] = Array.isArray(crop.images)
       ? crop.images
       : [];
 
-    // Check max images constraint
     if (currentImages.length + files.length > MAX_IMAGES_PER_CROP) {
       throw new BadRequestException(
         `A crop can have maximum ${MAX_IMAGES_PER_CROP} images. Current images: ${currentImages.length}`,
@@ -477,12 +470,7 @@ export class CropService {
 
     const folder = this.getFolderByCropName(cropName);
 
-    // Upload helper: chunked/limited concurrency
     const uploadFile = async (file: Express.Multer.File) => {
-      // Optionally: process image (resize/compress) before upload using 'sharp'
-      // Example: const processedBuffer = await sharp(file.buffer).resize({ width: 1600 }).toBuffer();
-      // Then pass processedBuffer to your file service if supported.
-      // For now, we pass the file as-is. FileService.upload should accept buffer or multer file.
       try {
         return await this.fileService.upload(file, { folder });
       } catch (err) {
@@ -491,11 +479,8 @@ export class CropService {
       }
     };
 
-    // Upload files in parallel with Promise.all (if you need bounded concurrency, implement a pool)
-    // For simplicity we use Promise.all here but cap concurrency if needed.
     let uploadedUrls: string[] = [];
     try {
-      // If you want safer concurrency, implement chunking:
       const chunks: Express.Multer.File[][] = [];
       for (let i = 0; i < files.length; i += UPLOAD_CONCURRENCY) {
         chunks.push(files.slice(i, i + UPLOAD_CONCURRENCY));
@@ -506,15 +491,13 @@ export class CropService {
       }
     } catch (err) {
       this.logger.error('uploadCropImagesAndCoordinates: upload error', err);
-      throw err; // already converted in uploadFile
+      throw err;
     }
 
-    // Persist changes inside a transaction
     try {
       await this.dataSource.transaction(async (manager) => {
         const repoTx = manager.getRepository(repository.target);
 
-        // re-fetch inside tx to avoid stale state
         const cropTx = await repoTx.findOne({ where: { id } });
 
         if (!cropTx) {
@@ -523,12 +506,10 @@ export class CropService {
           );
         }
 
-        // Append images if entity supports 'images'
         if ('images' in cropTx && Array.isArray(cropTx.images)) {
           cropTx.images = [...(cropTx.images || []), ...uploadedUrls];
         }
 
-        // Optionally set geo coordinates if entity supports it
         if (coordinates && 'cropCoordinates' in cropTx) {
           cropTx.cropCoordinates = {
             type: 'Point',
@@ -543,8 +524,7 @@ export class CropService {
         'uploadCropImagesAndCoordinates: db transaction failed',
         err,
       );
-      // Ideally remove any uploaded files on failure (garbage collection) - implement fileService.deleteMany(urls)
-      // Attempt best-effort cleanup:
+
       try {
         // if (uploadedUrls.length && this.fileService.deleteMany) {
         //   await this.fileService.deleteMany(uploadedUrls);
@@ -555,8 +535,64 @@ export class CropService {
       throw new InternalServerErrorException('Failed to save uploaded images');
     }
 
-    // Return the updated crop (fresh)
     const updated = await repository.findOne({ where: { id } });
     return updated;
+  }
+  async getCropAlerts(farmId: string): Promise<string[]> {
+    try {
+      const cropTypesWithoutImages = [];
+
+      const tenderCoconuts = await this.tenderCoconutRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (
+        tenderCoconuts.some((crop) => !crop.images || crop.images.length === 0)
+      ) {
+        cropTypesWithoutImages.push('TenderCoconut');
+      }
+
+      const turmerics = await this.turmericRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (turmerics.some((crop) => !crop.images || crop.images.length === 0)) {
+        cropTypesWithoutImages.push('Turmeric');
+      }
+
+      const bananas = await this.bananaRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (bananas.some((crop) => !crop.images || crop.images.length === 0)) {
+        cropTypesWithoutImages.push('Banana');
+      }
+
+      const dryCoconuts = await this.dryCoconutRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (
+        dryCoconuts.some((crop) => !crop.images || crop.images.length === 0)
+      ) {
+        cropTypesWithoutImages.push('DryCoconut');
+      }
+
+      const sunflowers = await this.sunflowerRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (sunflowers.some((crop) => !crop.images || crop.images.length === 0)) {
+        cropTypesWithoutImages.push('Sunflower');
+      }
+
+      return cropTypesWithoutImages;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get crop alert names for farm ${farmId}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to retrieve crop alerts');
+    }
   }
 }

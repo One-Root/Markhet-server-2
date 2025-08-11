@@ -8,7 +8,7 @@ export class OtpService {
   private readonly apiKey: string;
 
   constructor(private readonly httpService: HttpService) {
-    this.apiKey = process.env['TWOFACTOR_API_KEY'];
+    this.apiKey = process.env['2FACTOR_API_KEY'];
   }
 
   async sendOtp(
