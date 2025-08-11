@@ -249,6 +249,19 @@ export class CropController {
     );
   }
 
+  @Get('alert/get-crop-alerts/:farmId')
+  async getCropAlerts(
+    @Param('farmId', ParseUUIDPipe) farmId: string,
+  ): Promise<ApiResponse<any[]>> {
+    const alerts = await this.cropService.getCropAlerts(farmId);
+
+    return new ApiResponse(
+      HttpStatus.OK,
+      'crop alerts retrieved successfully',
+      alerts,
+    );
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeCrop(
