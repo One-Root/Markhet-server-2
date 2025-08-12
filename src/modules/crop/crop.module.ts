@@ -8,6 +8,7 @@ import {
   DryCoconut,
   TenderCoconut,
   Sunflower,
+  Farm,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -31,6 +32,7 @@ import { EventModule } from '../event/event.module';
       Banana,
       DryCoconut,
       Sunflower,
+      Farm,
     ]),
     EventModule,
     FarmModule,
