@@ -25,6 +25,7 @@ Dockerfile.*
 
 # environment variables
 .env*
+.npmrc
 
 # logs
 *.log
@@ -55,3 +56,4 @@ test-coverage/
 
 # gcp credentials (sensitive data)
 src/config/gcp-credentials/
+.npmrc
