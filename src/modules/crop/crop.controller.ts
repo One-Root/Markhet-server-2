@@ -48,9 +48,10 @@ import { CropName } from '../../common/enums/farm.enum';
 import { CustomRequest } from '../../common/interfaces/express.interface';
 import { ApiResponse } from '../../common/interceptors/api-response.interceptor';
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('crops')
-@UseGuards(JwtAuthGuard, SessionGuard)
+// @UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
 
@@ -69,6 +70,7 @@ export class CropController {
   }
 
   @Post(':farmId/sunflower')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async createSunflowerCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
     @Body() createSunflowerDto: CreateSunflowerDto,
@@ -105,6 +107,7 @@ export class CropController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async getCrop(
     @Query() params: { cropName: CropName },
     @Param('id', ParseUUIDPipe) id: string,
@@ -117,6 +120,7 @@ export class CropController {
   }
 
   @Post(':farmId/tender-coconut')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async createTenderCoconutCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
     @Body() createTenderCoconutDto: CreateTenderCoconutDto,
@@ -134,6 +138,7 @@ export class CropController {
   }
 
   @Post(':farmId/turmeric')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async createTurmericCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
     @Body() createTurmericDto: CreateTurmericDto,
@@ -151,6 +156,7 @@ export class CropController {
   }
 
   @Post(':farmId/banana')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async createBananaCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
     @Body() createBananaDto: CreateBananaDto,
@@ -165,6 +171,7 @@ export class CropController {
   }
 
   @Post(':farmId/dry-coconut')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async createDryCoconutCrop(
     @Param('farmId', ParseUUIDPipe) farmId: string,
     @Body() createDryCoconutDto: CreateDryCoconutDto,
@@ -182,6 +189,7 @@ export class CropController {
   }
 
   @Patch('tender-coconut/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async updateTenderCoconut(
     @Param('cropId', ParseUUIDPipe) cropId: string,
     @Body() updateTenderCoconutDto: UpdateTenderCoconutDto,
@@ -195,6 +203,7 @@ export class CropController {
   }
 
   @Patch('turmeric/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async updateTurmeric(
     @Param('cropId', ParseUUIDPipe) cropId: string,
     @Body() updateTurmericDto: UpdateTurmericDto,
@@ -208,6 +217,7 @@ export class CropController {
   }
 
   @Patch('banana/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async updateBanana(
     @Param('cropId', ParseUUIDPipe) cropId: string,
     @Body() updateBananaDto: UpdateBananaDto,
@@ -218,6 +228,7 @@ export class CropController {
   }
 
   @Patch('dry-coconut/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async updateDryCoconut(
     @Param('cropId', ParseUUIDPipe) cropId: string,
     @Body() updateDryCoconutDto: UpdateDryCoconutDto,
@@ -231,6 +242,7 @@ export class CropController {
   }
 
   @Patch('sunflower/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async updateSunflower(
     @Param('cropId', ParseUUIDPipe) cropId: string,
     @Body() UpdateSunflowerDto: UpdateSunflowerDto,
@@ -254,6 +266,7 @@ export class CropController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeCrop(
     @Param('id', ParseUUIDPipe) id: string,
@@ -262,6 +275,7 @@ export class CropController {
     await this.cropService.remove(id, params.cropName);
   }
   @Post(':cropName/:id/upload')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   @UseInterceptors(FilesInterceptor('images'))
   async uploadCropImages(
     @Param('cropName') cropName: CropName,
@@ -297,6 +311,7 @@ export class CropController {
     );
   }
   @Get('alert/get-crop-alerts/:farmId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
   async getCropAlerts(
     @Param('farmId', ParseUUIDPipe) farmId: string,
   ): Promise<ApiResponse<any[]>> {
