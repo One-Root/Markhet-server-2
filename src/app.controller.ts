@@ -16,7 +16,7 @@ export class AppController {
     return {
       statusCode: 200,
       message:
-        'Markhet Server is up and running 1.0.3 . All systems are operational. With New Admin.',
+        'Markhet Server is up and running 1.0.3 . All V2 dev server systems are operational. With New Admin.',
       timestamp: new Date().toISOString(),
       path: request.originalUrl,
     };

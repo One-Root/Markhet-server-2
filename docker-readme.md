@@ -12,10 +12,10 @@ This markdown contains all the necessary commands (with comments) to:
 
 ```bash
 # Build the Docker image from your Dockerfile
-docker build -t 050451360524.dkr.ecr.ap-south-1.amazonaws.com/markhet-v2-dev:latest .
+docker build -t markhet-server-v2-dev .
 
 # Tag the image for pushing to ECR (update repo if needed)
-docker tag markhet-server:latest markhet-v2-dev:latest
+docker tag markhet-server-v2-dev:latest 050451360524.dkr.ecr.ap-south-1.amazonaws.com/markhet-v2-dev:latest
 
 # Authenticate Docker to your AWS ECR repository
 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 050451360524.dkr.ecr.ap-south-1.amazonaws.com
