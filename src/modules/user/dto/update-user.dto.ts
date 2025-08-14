@@ -35,11 +35,11 @@ export class UpdateUserDto {
   @IsString()
   @Length(6, 6)
   @IsOptional()
-  pincode?: string; // ✅ optional
+  pincode?: string;
 
   @IsOptional()
   @IsString()
-  profileImage?: string; // ✅ already optional
+  profileImage?: string;
 
   @IsValidMobileNumber()
   @IsOptional()
@@ -57,11 +57,11 @@ export class UpdateUserDto {
   @IsArray()
   @IsEnum(CropName, { each: true })
   @IsOptional()
-  cropNames?: CropName[]; // ✅ optional
+  cropNames?: CropName[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => MetaDataDto)
   @IsOptional()
-  meta?: { key: string; value: any }[]; // ✅ optional
+  meta?: { key: string; value: any }[];
 }
