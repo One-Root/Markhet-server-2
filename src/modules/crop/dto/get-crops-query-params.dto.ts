@@ -10,6 +10,7 @@ import {
 import { Transform } from 'class-transformer';
 
 import { CropName } from '../../../common/enums/farm.enum';
+import { CropStatusEnum } from '../../../common/enums/farm.enum';
 import {
   BananaVariety,
   TurmericVariety,
@@ -27,6 +28,8 @@ export class GetCropsQueryParamsDto {
   @IsEnum(CropName)
   cropName: CropName;
 
+  // @IsEnum(CropStatusEnum)
+  // cropStatusEnum: CropStatusEnum;
   @IsOptional()
   @IsInt()
   @Transform(({ value }) => toNumber(value) || 1)

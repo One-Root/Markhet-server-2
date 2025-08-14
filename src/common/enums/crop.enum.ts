@@ -4,6 +4,7 @@ enum CropTable {
   BANANA = 'banana',
   DRY_COCONUT = 'dry_coconut',
   SUNFLOWER = 'sunflower',
+  MAIZE = 'maize',
 }
 
 // enums representing crop  varieties
@@ -63,6 +64,10 @@ enum SunflowerVariety {
   SUNBURST = 'Sunburst',
   SUNPOWER = 'Sunpower',
 }
+enum MaizeVariety {
+  NORMAL = 'Normal',
+  WHITE = 'White',
+}
 
 export {
   CropTable,
@@ -71,4 +76,5 @@ export {
   DryCoconutVariety,
   TenderCoconutVariety,
   SunflowerVariety,
+  MaizeVariety,
 };
