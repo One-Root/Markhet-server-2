@@ -15,6 +15,7 @@ import {
   DryCoconut,
   TenderCoconut,
   Sunflower,
+  Maize,
 } from '@one-root/markhet-core';
 
 import { FarmService } from '../farm/farm.service';
@@ -44,6 +45,7 @@ import { Language } from '../../common/enums/user.enum';
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
 import { Farm } from '@one-root/markhet-core';
+import { CropStatusEnum } from '../../common/enums/farm.enum';
 
 import {
   BananaVariety,
@@ -51,7 +53,9 @@ import {
   DryCoconutVariety,
   TenderCoconutVariety,
   SunflowerVariety,
+  MaizeVariety,
 } from '../../common/enums/crop.enum';
+import { CreateMaizeDto } from './dto/create-maize.dto';
 
 type CropWithImageUrl<T> = T & { imageUrl: string };
 
@@ -79,6 +83,9 @@ export class CropService {
 
     @InjectRepository(Sunflower)
     private readonly sunflowerRepoInjected: Repository<Sunflower>,
+
+    @InjectRepository(Maize)
+    private readonly maizeRepoInjected: Repository<Maize>,
 
     @InjectRepository(Farm)
     private readonly farmRepository: Repository<Farm>,
@@ -143,7 +150,7 @@ export class CropService {
 
     if (data && request) {
       request.fromCache = true;
-      return data;
+      return data; // direct array
     }
 
     const skip = (page - 1) * limit;
@@ -301,6 +308,20 @@ export class CropService {
     Object.assign(crop, dto);
     return repository.save(crop);
   }
+  async createMaize(
+    farmId: string,
+    dto: CreateMaizeDto,
+  ): Promise<CropWithImageUrl<Maize>> {
+    const farm = await this.farmService.findOne(farmId);
+    const repository = this.getRepository<Maize>(CropName.MAIZE);
+    const crop = repository.create({
+      maizeVariety: dto.maizeVariety,
+      farm,
+      cropName: CropName.MAIZE,
+    }) as Maize;
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
+  }
 
   async updateTurmeric(id: string, dto: UpdateTurmericDto): Promise<Turmeric> {
     const repo = this.getRepository<Turmeric>(CropName.TURMERIC);
@@ -370,6 +391,8 @@ export class CropService {
         return this.dryCoconutRepoInjected as Repository<T>;
       case CropName.SUNFLOWER:
         return this.sunflowerRepoInjected as Repository<T>;
+      case CropName.MAIZE:
+        return this.maizeRepoInjected as Repository<T>;
       default:
         throw new Error(`repository for crop '${cropName}' not found`);
     }
@@ -552,6 +575,13 @@ export class CropService {
         cropTypesWithoutImages.push('TenderCoconut');
       }
 
+      const maize = await this.maizeRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (maize.some((crop) => !crop.images || crop.images.length === 0)) {
+        cropTypesWithoutImages.push('Maize');
+      }
       const turmerics = await this.turmericRepoInjected.find({
         where: { farm: { id: farmId } },
         select: ['images'],

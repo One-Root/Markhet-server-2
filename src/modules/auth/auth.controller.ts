@@ -7,6 +7,7 @@ import {
   UploadedFile,
   BadRequestException,
   UseInterceptors,
+  Patch,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -21,6 +22,8 @@ import { LogoutDto } from './dto/logout.dto';
 import { AuthData } from '../../common/interfaces/auth.interface';
 import { CustomRequest } from '../../common/interfaces/express.interface';
 import { ApiResponse } from '../../common/interceptors/api-response.interceptor';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -110,5 +113,33 @@ export class AuthController {
   @Post('logout')
   async logout(@Body() logoutDto: LogoutDto) {
     return this.authService.logout(logoutDto);
+  }
+  @Patch('update-profile-image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async updateProfileImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: CustomRequest,
+  ): Promise<ApiResponse<any>> {
+    if (!file) {
+      throw new BadRequestException('Profile image file is required');
+    }
+
+    const url = await this.fileService.upload(file, {
+      folder: Folders.USER_PROFILES,
+    });
+
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    const updatedUser = await this.authService.updateProfileImage(userId, url);
+
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Profile image updated successfully',
+      updatedUser,
+    );
   }
 }

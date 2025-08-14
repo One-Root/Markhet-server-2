@@ -129,4 +129,14 @@ export class AuthService {
 
     await this.sessionService.logout(userId, deviceId);
   }
+
+  async updateProfileImage(userId: string, imageUrl: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    user.profileImage = imageUrl;
+    return this.userService.update(userId, { profileImage: imageUrl });
+  }
 }

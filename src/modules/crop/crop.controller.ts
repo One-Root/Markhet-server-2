@@ -23,6 +23,7 @@ import {
   DryCoconut,
   TenderCoconut,
   Sunflower,
+  Maize,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -49,6 +50,8 @@ import { CustomRequest } from '../../common/interfaces/express.interface';
 import { ApiResponse } from '../../common/interceptors/api-response.interceptor';
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateMaizeDto } from './dto/create-maize.dto';
+import { CropStatusEnum } from '../../common/enums/farm.enum';
 
 @Controller('crops')
 // @UseGuards(JwtAuthGuard, SessionGuard)
@@ -83,6 +86,19 @@ export class CropController {
     return new ApiResponse(
       HttpStatus.CREATED,
       'crop created successfully',
+      crop,
+    );
+  }
+  @Post(':farmId/maize')
+  @UseGuards(JwtAuthGuard, SessionGuard)
+  async createMaizeCrop(
+    @Param('farmId', ParseUUIDPipe) farmId: string,
+    @Body() createMaizeDto: CreateMaizeDto,
+  ): Promise<ApiResponse<Maize>> {
+    const crop = await this.cropService.createMaize(farmId, createMaizeDto);
+    return new ApiResponse(
+      HttpStatus.CREATED,
+      'maize crop created succesfully',
       crop,
     );
   }

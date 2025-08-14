@@ -5,4 +5,5 @@ export const CROP_IMAGE_MAP: Record<CropName, string> = {
   [CropName.BANANA]: 'https://example.com/images/banana.jpg',
   [CropName.DRY_COCONUT]: 'https://example.com/images/dry_coconut.jpg',
   [CropName.SUNFLOWER]: 'https://example.com/images/sunflower.jpg',
+  [CropName.MAIZE]: '',
 };
