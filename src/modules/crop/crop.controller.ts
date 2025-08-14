@@ -339,4 +339,17 @@ export class CropController {
       alerts,
     );
   }
+  @Delete(':cropName/:id/images')
+  @UseGuards(JwtAuthGuard, SessionGuard)
+  async deleteCropImages(
+    @Param('cropName') cropName: CropName,
+    @Param('id') id: string,
+    @Body('imageUrls') imageUrls: string[],
+  ) {
+    if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
+      throw new BadRequestException('imageUrls must be a non-empty array');
+    }
+
+    return this.cropService.deleteCropImages(cropName, id, imageUrls);
+  }
 }

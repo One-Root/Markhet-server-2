@@ -625,4 +625,47 @@ export class CropService {
       throw new InternalServerErrorException('Failed to retrieve crop alerts');
     }
   }
+  async deleteCropImages(cropName: CropName, id: string, imageUrls: string[]) {
+    const repository = this.getRepositoryByName(cropName);
+
+    const crop = await repository.findOne({ where: { id } });
+    if (!crop) {
+      throw new NotFoundException(`${cropName} with id ${id} not found`);
+    }
+
+    if (!Array.isArray(crop.images) || crop.images.length === 0) {
+      throw new NotFoundException('No images found for this crop');
+    }
+
+    const missingImages = imageUrls.filter((url) => !crop.images.includes(url));
+    if (missingImages.length > 0) {
+      throw new NotFoundException(
+        `Some images not found for this crop: ${missingImages.join(', ')}`,
+      );
+    }
+
+    // Remove images from DB array
+    crop.images = crop.images.filter((img) => !imageUrls.includes(img));
+
+    try {
+      await this.dataSource.transaction(async (manager) => {
+        const repoTx = manager.getRepository(repository.target);
+        await repoTx.save(crop);
+      });
+    } catch (err) {
+      this.logger.error('deleteCropImages: db transaction failed', err);
+      throw new InternalServerErrorException(
+        'Failed to delete images from crop',
+      );
+    }
+
+    // Delete from GCS
+    try {
+      await this.fileService.deleteMany(imageUrls);
+    } catch (storageErr) {
+      this.logger.warn('Failed to delete some images from storage', storageErr);
+    }
+
+    return { message: 'Images deleted successfully', crop };
+  }
 }

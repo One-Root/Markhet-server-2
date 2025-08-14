@@ -63,4 +63,23 @@ export class FileService {
         .end(buffer);
     });
   }
+  /** Delete a single file from GCS given its public URL */
+  async delete(fileUrl: string): Promise<void> {
+    const filePath = this.extractFilePathFromUrl(fileUrl);
+    await this.bucket.file(filePath).delete();
+  }
+
+  /** Delete multiple files from GCS */
+  async deleteMany(fileUrls: string[]): Promise<void> {
+    await Promise.all(fileUrls.map((url) => this.delete(url)));
+  }
+
+  /** Extracts "folder/filename" from full public URL */
+  private extractFilePathFromUrl(url: string): string {
+    const prefix = `https://storage.googleapis.com/${this.bucket.name}/`;
+    if (!url.startsWith(prefix)) {
+      throw new Error(`Invalid file URL: ${url}`);
+    }
+    return url.substring(prefix.length);
+  }
 }
