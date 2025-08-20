@@ -46,6 +46,7 @@ import { applyOperator } from '../../common/utils/apply-operator.util';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
 import { Farm } from '@one-root/markhet-core';
 import { CropStatusEnum } from '../../common/enums/farm.enum';
+import { UpdateMaizeDto } from './dto/update-maize-dto';
 
 import {
   BananaVariety,
@@ -358,6 +359,14 @@ export class CropService {
     const repo = this.getRepository<Sunflower>(CropName.SUNFLOWER);
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
+    Object.assign(crop, dto);
+    return repo.save(crop);
+  }
+
+  async updateMaize(id: string, dto: UpdateMaizeDto): Promise<Maize> {
+    const repo = this.getRepository<Maize>(CropName.MAIZE);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop) throw new NotFoundException(`maize with id ${id} not found`);
     Object.assign(crop, dto);
     return repo.save(crop);
   }

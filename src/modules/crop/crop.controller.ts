@@ -52,6 +52,7 @@ import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateMaizeDto } from './dto/create-maize.dto';
 import { CropStatusEnum } from '../../common/enums/farm.enum';
+import { UpdateMaizeDto } from './dto/update-maize-dto';
 
 @Controller('crops')
 // @UseGuards(JwtAuthGuard, SessionGuard)
@@ -267,6 +268,17 @@ export class CropController {
       cropId,
       UpdateSunflowerDto,
     );
+
+    return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
+  }
+
+  @Patch('maize/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
+  async updateMaize(
+    @Param('cropId', ParseUUIDPipe) cropId: string,
+    @Body() UpdateMaizeDto: UpdateMaizeDto,
+  ): Promise<ApiResponse<Maize>> {
+    const crop = await this.cropService.updateMaize(cropId, UpdateMaizeDto);
 
     return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
   }
