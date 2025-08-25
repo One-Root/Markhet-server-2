@@ -283,7 +283,9 @@ export class CropService {
     dto: CreateSunflowerDto,
   ): Promise<CropWithImageUrl<Sunflower>> {
     const farm = await this.farmService.findOne(farmId);
+    console.log(farmId);
     const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
+
     const crop = repository.create({
       sunflowerVariety: dto.sunflowerVariety,
       farm,

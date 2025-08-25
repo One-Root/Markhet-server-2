@@ -15,8 +15,9 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { TurmericVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateTurmericDto {
+export class CreateTurmericDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsString()
   region?: string;

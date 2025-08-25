@@ -15,8 +15,9 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { MaizeVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateMaizeDto {
+export class CreateMaizeDto extends CropCustomFieldsDto {
   @IsEnum(MaizeVariety)
   maizeVariety: MaizeVariety;
 

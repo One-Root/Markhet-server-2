@@ -52,9 +52,11 @@ export class CropCardService {
     cropName: CropName,
   ): Promise<CropCard> {
     const crop = await this.cropService.findOne(cropName, cropId);
+    console.log(cropId);
     if (!crop || crop?.farm?.user?.id !== farmerId) {
       throw new NotFoundException(`Crop not found or not owned by this farmer`);
     }
+    console.log(`Creating crop card for farmer ${farmerId} and crop ${cropId}`);
 
     const existingCard = await this.cropCardRepo.findOne({
       where: {
