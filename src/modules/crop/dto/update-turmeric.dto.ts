@@ -1,5 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType, IntersectionType } from '@nestjs/mapped-types';
 
 import { CreateTurmericDto } from './create-turmeric.dto';
 
-export class UpdateTurmericDto extends PartialType(CreateTurmericDto) {}
+import { CropCustomFieldsDto } from './base-crop.dto';
+
+export class UpdateTurmericDto extends IntersectionType(
+  PartialType(CreateTurmericDto),
+  CropCustomFieldsDto,
+) {}

@@ -15,8 +15,9 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { DryCoconutVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateDryCoconutDto {
+export class CreateDryCoconutDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsBoolean()
   isHarvested?: boolean;

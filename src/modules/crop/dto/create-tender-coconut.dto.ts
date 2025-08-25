@@ -15,8 +15,9 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { TenderCoconutVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateTenderCoconutDto {
+export class CreateTenderCoconutDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsNumber()
   @Min(0)

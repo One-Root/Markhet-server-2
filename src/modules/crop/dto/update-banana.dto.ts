@@ -1,5 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-
+import { PartialType, IntersectionType } from '@nestjs/mapped-types';
 import { CreateBananaDto } from './create-banana.dto';
-
-export class UpdateBananaDto extends PartialType(CreateBananaDto) {}
+import { CropCustomFieldsDto } from './base-crop.dto';
+export class UpdateBananaDto extends IntersectionType(
+  PartialType(CreateBananaDto),
+  CropCustomFieldsDto,
+) {}

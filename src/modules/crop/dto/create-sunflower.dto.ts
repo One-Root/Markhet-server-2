@@ -11,8 +11,9 @@ import {
 import { Type } from 'class-transformer';
 import { SunflowerVariety } from '../../../common/enums/crop.enum';
 import { MetaDataDto } from 'src/common/dto/meta-data.dto';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateSunflowerDto {
+export class CreateSunflowerDto extends CropCustomFieldsDto {
   @IsEnum(SunflowerVariety)
   sunflowerVariety: SunflowerVariety;
 
@@ -54,21 +55,4 @@ export class CreateSunflowerDto {
   @IsOptional()
   @IsNumber()
   price?: number;
-
-  // Custom Fields
-  @IsOptional()
-  @IsString()
-  SunflowerCustomFeild1?: string;
-
-  @IsOptional()
-  @IsString()
-  SunflowerCustomFeild2?: string;
-
-  @IsOptional()
-  @IsString()
-  SunflowerCustomFeild3?: string;
-
-  @IsOptional()
-  @IsString()
-  SunflowerCustomFeild5?: string;
 }

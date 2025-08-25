@@ -15,8 +15,9 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { BananaVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateBananaDto {
+export class CreateBananaDto extends CropCustomFieldsDto {
   @IsEnum(BananaVariety)
   bananaVariety: BananaVariety;
 
