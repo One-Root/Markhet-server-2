@@ -62,10 +62,10 @@ export class SignupDto {
   @IsString()
   @IsOptional()
   profileImage: string;
-
   @IsArray()
   @IsEnum(CropName, { each: true })
   @ArrayNotEmpty()
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   cropNames: CropName[];
 
   @IsArray()
