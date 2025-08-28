@@ -10,6 +10,7 @@ import { BulkUpdate } from '../../../common/interfaces/scheduler.interface';
 import { UserService } from 'src/modules/user/user.service';
 import { HarvestHistoryService } from 'src/modules/harvest-history/harvest-history.service';
 import { HarvestStatus } from 'src/common/enums/harvest-history.enum';
+import { CropReportedByEnum, CropStatusEnum } from 'src/common/enums/crop.enum';
 
 @Injectable()
 export class CalculateNextHarvestDateTask {
@@ -76,6 +77,8 @@ export class CalculateNextHarvestDateTask {
             nextHarvestDate,
             lastHarvestDate: crop.nextHarvestDate,
             isReadyToHarvest: false,
+            cropStatus: CropStatusEnum.NOT_READY,
+            reportedBy: CropReportedByEnum.SYSTEM,
           };
         });
 

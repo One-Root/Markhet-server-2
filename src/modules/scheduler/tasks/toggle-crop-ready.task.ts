@@ -10,6 +10,7 @@ import { UserService } from 'src/modules/user/user.service';
 import { HarvestStatus } from '../../../common/enums/harvest-history.enum';
 import { ChatraceService } from 'src/modules/notification/chatrace/chatrace.service';
 import { DryCoconut, TenderCoconut } from '@one-root/markhet-core/dist';
+import { CropReportedByEnum, CropStatusEnum } from 'src/common/enums/crop.enum';
 
 @Injectable()
 export class ToggleCropReadyTask {
@@ -93,6 +94,8 @@ export class ToggleCropReadyTask {
             id: crop.id,
             cropName,
             isReadyToHarvest: true,
+            cropStatus: CropStatusEnum.MAYBE_READY,
+            reportedBy: CropReportedByEnum.SYSTEM,
           });
         }
 

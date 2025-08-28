@@ -69,6 +69,19 @@ enum MaizeVariety {
   WHITE = 'White',
 }
 
+enum CropStatusEnum {
+  FARMER_REPORTED = 'Farmer Reported',
+  MAYBE_READY = 'Maybe Ready',
+  PAKKA_READY = 'Pakka Ready',
+  NOT_READY = 'Not Ready',
+}
+
+enum CropReportedByEnum {
+  FARMER = 'Farmer',
+  SYSTEM = 'System',
+  SUPPORT = 'Support',
+}
+
 export {
   CropTable,
   BananaVariety,
@@ -77,4 +90,6 @@ export {
   TenderCoconutVariety,
   SunflowerVariety,
   MaizeVariety,
+  CropStatusEnum,
+  CropReportedByEnum,
 };
