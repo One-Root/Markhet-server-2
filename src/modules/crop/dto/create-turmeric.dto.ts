@@ -22,6 +22,7 @@ export class CreateTurmericDto extends CropCustomFieldsDto {
   @IsString()
   region?: string;
 
+  @IsOptional()
   @IsEnum(TurmericVariety)
   turmericVariety: TurmericVariety;
 

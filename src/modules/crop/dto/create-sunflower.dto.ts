@@ -14,6 +14,7 @@ import { MetaDataDto } from 'src/common/dto/meta-data.dto';
 import { CropCustomFieldsDto } from './base-crop.dto';
 
 export class CreateSunflowerDto extends CropCustomFieldsDto {
+  @IsOptional()
   @IsEnum(SunflowerVariety)
   sunflowerVariety: SunflowerVariety;
 

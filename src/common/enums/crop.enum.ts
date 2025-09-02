@@ -65,8 +65,12 @@ enum SunflowerVariety {
   SUNPOWER = 'Sunpower',
 }
 enum MaizeVariety {
-  NORMAL = 'Normal',
-  WHITE = 'White',
+  YELLOW = 'Yellow Maize',
+  WHITE = 'White Maize',
+  RED = 'Red Maize',
+  JAWARI = 'Jawari',
+  HYBRID = 'Hybrid',
+  POPCORN = 'Popcorn',
 }
 
 enum CropStatusEnum {

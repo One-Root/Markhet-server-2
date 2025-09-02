@@ -287,7 +287,7 @@ export class CropService {
     const repository = this.getRepository<Sunflower>(CropName.SUNFLOWER);
 
     const crop = repository.create({
-      sunflowerVariety: dto.sunflowerVariety,
+      ...dto,
       farm,
       cropName: CropName.SUNFLOWER,
     }) as Sunflower;
@@ -318,7 +318,7 @@ export class CropService {
     const farm = await this.farmService.findOne(farmId);
     const repository = this.getRepository<Maize>(CropName.MAIZE);
     const crop = repository.create({
-      maizeVariety: dto.maizeVariety,
+      ...dto,
       farm,
       cropName: CropName.MAIZE,
     }) as Maize;

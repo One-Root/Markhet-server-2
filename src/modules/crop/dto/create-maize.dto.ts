@@ -18,6 +18,7 @@ import { MaizeVariety } from '../../../common/enums/crop.enum';
 import { CropCustomFieldsDto } from './base-crop.dto';
 
 export class CreateMaizeDto extends CropCustomFieldsDto {
+  @IsOptional()
   @IsEnum(MaizeVariety)
   maizeVariety: MaizeVariety;
 

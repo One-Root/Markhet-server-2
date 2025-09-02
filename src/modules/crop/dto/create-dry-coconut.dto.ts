@@ -26,6 +26,7 @@ export class CreateDryCoconutDto extends CropCustomFieldsDto {
   @IsBoolean()
   isOnTree?: boolean;
 
+  @IsOptional()
   @IsEnum(DryCoconutVariety)
   dryCoconutVariety: DryCoconutVariety;
 

@@ -18,6 +18,7 @@ import { BananaVariety } from '../../../common/enums/crop.enum';
 import { CropCustomFieldsDto } from './base-crop.dto';
 
 export class CreateBananaDto extends CropCustomFieldsDto {
+  @IsOptional()
   @IsEnum(BananaVariety)
   bananaVariety: BananaVariety;
 

@@ -47,6 +47,7 @@ export class CreateTenderCoconutDto extends CropCustomFieldsDto {
   @Min(0)
   chutePercentage?: number;
 
+  @IsOptional()
   @IsEnum(TenderCoconutVariety)
   tenderCoconutVariety: TenderCoconutVariety;
 
