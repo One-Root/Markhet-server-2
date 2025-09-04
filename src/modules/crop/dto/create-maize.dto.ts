@@ -38,6 +38,10 @@ export class CreateMaizeDto extends CropCustomFieldsDto {
 
   @IsOptional()
   @IsNumber()
+  quantity: number;
+
+  @IsOptional()
+  @IsNumber()
   @Min(0)
   chutePercentage?: number;
 

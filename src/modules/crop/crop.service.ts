@@ -57,6 +57,7 @@ import {
   MaizeVariety,
 } from '../../common/enums/crop.enum';
 import { CreateMaizeDto } from './dto/create-maize.dto';
+import { ca } from 'date-fns/locale';
 
 type CropWithImageUrl<T> = T & { imageUrl: string };
 
@@ -228,6 +229,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.TENDER_COCONUT,
+      measure: 'trees',
     }) as TenderCoconut;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -243,6 +245,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.TURMERIC,
+      measure: 'Quintals',
     }) as Turmeric;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -258,6 +261,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.BANANA,
+      measure: 'Plants',
     }) as Banana;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -273,6 +277,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.DRY_COCONUT,
+      measure: dto.isHarvested ? 'nuts' : 'trees',
     }) as DryCoconut;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -290,6 +295,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.SUNFLOWER,
+      measure: 'Quintals',
     }) as Sunflower;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -309,6 +315,7 @@ export class CropService {
     if (!crop)
       throw new NotFoundException(`tender coconut with id ${id} not found`);
     Object.assign(crop, dto);
+    crop.measure = 'trees';
     return repository.save(crop);
   }
   async createMaize(
@@ -321,6 +328,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.MAIZE,
+      measure: 'Quintals',
     }) as Maize;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -331,6 +339,7 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`turmeric with id ${id} not found`);
     Object.assign(crop, dto);
+    crop.measure = 'Quintals';
     return repo.save(crop);
   }
 
@@ -339,6 +348,7 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`banana with id ${id} not found`);
     Object.assign(crop, dto);
+    crop.measure = 'Plants';
     return repo.save(crop);
   }
 
@@ -351,6 +361,8 @@ export class CropService {
     if (!crop)
       throw new NotFoundException(`dry coconut with id ${id} not found`);
     Object.assign(crop, dto);
+    crop.measure = dto.isHarvested ? 'nuts' : 'trees';
+
     return repo.save(crop);
   }
 
@@ -362,6 +374,8 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
     Object.assign(crop, dto);
+    crop.measure = 'Quintals';
+
     return repo.save(crop);
   }
 
@@ -370,6 +384,8 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`maize with id ${id} not found`);
     Object.assign(crop, dto);
+
+    crop.measure = 'Quintals';
     return repo.save(crop);
   }
 
@@ -385,6 +401,8 @@ export class CropService {
         return Object.values(DryCoconutVariety).includes(cropVariety as any);
       case CropName.SUNFLOWER:
         return Object.values(SunflowerVariety).includes(cropVariety as any);
+      case CropName.MAIZE:
+        return Object.values(MaizeVariety).includes(cropVariety as any);
       default:
         return false;
     }
@@ -436,6 +454,8 @@ export class CropService {
         return this.dataSource.getRepository(DryCoconut);
       case CropName.SUNFLOWER:
         return this.dataSource.getRepository(Sunflower);
+      case CropName.MAIZE:
+        return this.dataSource.getRepository(Maize);
       default:
         throw new Error(`No repository found for cropName: ${cropName}`);
     }
@@ -453,6 +473,8 @@ export class CropService {
         return Folders.CROPS_DRY_COCONUT;
       case CropName.SUNFLOWER:
         return Folders.CROPS_SUNFLOWER;
+      case CropName.MAIZE:
+        return Folders.CROPS_MAIZE;
       default:
         throw new Error(`No folder mapping found for cropName: ${cropName}`);
     }

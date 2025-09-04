@@ -12,4 +12,8 @@ export class CropCustomFieldsDto {
   @IsOptional()
   @IsString()
   otherVarietyName?: string;
+
+  @IsOptional()
+  @IsString()
+  measure?: string;
 }

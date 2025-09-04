@@ -30,10 +30,10 @@ export class CreateDryCoconutDto extends CropCustomFieldsDto {
   @IsEnum(DryCoconutVariety)
   dryCoconutVariety: DryCoconutVariety;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  numberOfTrees?: number;
+  // @IsOptional()
+  // @IsInt()
+  // @Min(0)
+  // numberOfTrees?: number;
 
   @IsOptional()
   @IsInt()
@@ -43,6 +43,10 @@ export class CreateDryCoconutDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsBoolean()
   isWithSemiHusk?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  quantity: number;
 
   @IsOptional()
   @IsInt()
