@@ -229,7 +229,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.TENDER_COCONUT,
-      measure: 'trees',
+      measure: 'nuts',
     }) as TenderCoconut;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -277,7 +277,7 @@ export class CropService {
       ...dto,
       farm,
       cropName: CropName.DRY_COCONUT,
-      measure: dto.isHarvested ? 'nuts' : 'trees',
+      measure: 'nuts',
     }) as DryCoconut;
     const saved = await repository.save(crop);
     return this._addImageUrlToCrop(saved);
@@ -315,7 +315,7 @@ export class CropService {
     if (!crop)
       throw new NotFoundException(`tender coconut with id ${id} not found`);
     Object.assign(crop, dto);
-    crop.measure = 'trees';
+    crop.measure = 'nuts';
     return repository.save(crop);
   }
   async createMaize(
@@ -361,7 +361,7 @@ export class CropService {
     if (!crop)
       throw new NotFoundException(`dry coconut with id ${id} not found`);
     Object.assign(crop, dto);
-    crop.measure = dto.isHarvested ? 'nuts' : 'trees';
+    crop.measure = 'nuts';
 
     return repo.save(crop);
   }
