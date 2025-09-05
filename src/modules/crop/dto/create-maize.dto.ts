@@ -27,10 +27,10 @@ export class CreateMaizeDto extends CropCustomFieldsDto {
   @Min(0)
   ageOfTree?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  numberOfTrees?: number;
+  // @IsOptional()
+  // @IsInt()
+  // @Min(0)
+  // numberOfTrees?: number;
 
   @IsOptional()
   @IsBoolean()
@@ -75,6 +75,10 @@ export class CreateMaizeDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsBoolean()
   hasSpots?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  willYouDryIt?: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })
