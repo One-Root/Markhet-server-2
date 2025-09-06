@@ -317,7 +317,6 @@ export class CropService {
       throw new NotFoundException(`tender coconut with id ${id} not found`);
 
     Object.assign(crop, dto);
-    crop.measure = 'nuts';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
       crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
@@ -347,7 +346,6 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`turmeric with id ${id} not found`);
     Object.assign(crop, dto);
-    crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
       crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
@@ -362,7 +360,6 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`banana with id ${id} not found`);
     Object.assign(crop, dto);
-    crop.measure = 'Plants';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
       crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
@@ -399,7 +396,6 @@ export class CropService {
     const crop = await repo.findOne({ where: { id } });
     if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
     Object.assign(crop, dto);
-    crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
       crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
@@ -415,7 +411,6 @@ export class CropService {
     if (!crop) throw new NotFoundException(`maize with id ${id} not found`);
     Object.assign(crop, dto);
 
-    crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
       crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
