@@ -23,10 +23,10 @@ export class CreateTenderCoconutDto extends CropCustomFieldsDto {
   @Min(0)
   ageOfTree?: number;
 
-  // @IsOptional()
-  // @IsInt()
-  // @Min(0)
-  // numberOfTrees?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  numberOfTrees?: number;
 
   // @IsOptional()
   // @IsInt()
