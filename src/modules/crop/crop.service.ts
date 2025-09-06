@@ -320,7 +320,7 @@ export class CropService {
     crop.measure = 'nuts';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
@@ -350,7 +350,7 @@ export class CropService {
     crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
@@ -365,7 +365,7 @@ export class CropService {
     crop.measure = 'Plants';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
@@ -384,7 +384,7 @@ export class CropService {
     crop.measure = crop.isHarvested ? 'nuts' : 'trees';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
@@ -402,7 +402,7 @@ export class CropService {
     crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
@@ -418,7 +418,7 @@ export class CropService {
     crop.measure = 'Quintals';
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
-      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
