@@ -26,6 +26,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/main.ts seed"
   },
+  "pnpm": {
+    "overrides": {
+      "glob-parent": "^6.0.2",
+      "is-glob": "^4.0.3"
+    }
+  },
   "dependencies": {
     "@google-cloud/storage": "^7.15.2",
     "@google-cloud/translate": "^8.5.1",

@@ -123,7 +123,9 @@ export class CalculateEntityScoreTask {
           let isPremium = false;
           if (
             cropName === CropName.TENDER_COCONUT &&
-            ((crop.isReadyToHarvest && crop.isVerified) || crop.quantity > 500)
+            crop.isReadyToHarvest &&
+            crop.isVerified &&
+            crop.quantity > 500
           ) {
             isPremium = true;
           }

@@ -11,6 +11,7 @@ enum CropStatusEnum {
   FARMER_REPORTED = 'Farmer Reported',
   MAYBE_READY = 'Maybe Ready',
   PAKKA_READY = 'Pakka Ready',
+  NOT_READY = 'Not Ready',
 }
 
 enum Weather {

@@ -55,6 +55,7 @@ import {
   TenderCoconutVariety,
   SunflowerVariety,
   MaizeVariety,
+  CropReportedByEnum,
 } from '../../common/enums/crop.enum';
 import { CreateMaizeDto } from './dto/create-maize.dto';
 import { ca } from 'date-fns/locale';
@@ -314,8 +315,15 @@ export class CropService {
     });
     if (!crop)
       throw new NotFoundException(`tender coconut with id ${id} not found`);
+
     Object.assign(crop, dto);
     crop.measure = 'nuts';
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repository.save(crop);
   }
   async createMaize(
@@ -340,6 +348,12 @@ export class CropService {
     if (!crop) throw new NotFoundException(`turmeric with id ${id} not found`);
     Object.assign(crop, dto);
     crop.measure = 'Quintals';
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repo.save(crop);
   }
 
@@ -349,6 +363,12 @@ export class CropService {
     if (!crop) throw new NotFoundException(`banana with id ${id} not found`);
     Object.assign(crop, dto);
     crop.measure = 'Plants';
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repo.save(crop);
   }
 
@@ -362,6 +382,12 @@ export class CropService {
       throw new NotFoundException(`dry coconut with id ${id} not found`);
     Object.assign(crop, dto);
     crop.measure = crop.isHarvested ? 'nuts' : 'trees';
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repo.save(crop);
   }
 
@@ -374,7 +400,12 @@ export class CropService {
     if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
     Object.assign(crop, dto);
     crop.measure = 'Quintals';
-
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repo.save(crop);
   }
 
@@ -385,6 +416,12 @@ export class CropService {
     Object.assign(crop, dto);
 
     crop.measure = 'Quintals';
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.MAYBE_READY;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
     return repo.save(crop);
   }
 
