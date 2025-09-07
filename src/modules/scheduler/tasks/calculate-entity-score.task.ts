@@ -13,6 +13,9 @@ import {
   ConfigRelation,
 } from '../../../common/enums/priority-config.enum';
 import { BulkUpdate } from '../../../common/interfaces/scheduler.interface';
+import { CropReportedByEnum, CropStatusEnum } from 'src/common/enums/crop.enum';
+import { log } from 'console';
+import { th } from 'date-fns/locale';
 
 @Injectable()
 export class CalculateEntityScoreTask {
@@ -115,10 +118,21 @@ export class CalculateEntityScoreTask {
         }
 
         const updates: BulkUpdate[] = crops.map((crop) => {
-          const score = this.priorityConfigService.calculateScore(
-            crop,
-            configs,
-          );
+          let score = this.priorityConfigService.calculateScore(crop, configs);
+
+          if (crop.cropStatus === CropStatusEnum.PAKKA_READY) {
+            score += 30;
+          } else if (crop.cropStatus === CropStatusEnum.FARMER_REPORTED) {
+            score += 20;
+          } else if (crop.cropStatus === CropStatusEnum.MAYBE_READY) {
+            if (crop.reportedBy === CropReportedByEnum.SUPPORT) {
+              score += 15;
+            } else {
+              score += 10;
+            }
+          }
+
+          score = Math.min(score, 100);
 
           let isPremium = false;
           if (
