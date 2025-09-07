@@ -43,8 +43,7 @@ export class SignupDto {
 
   @IsString()
   @IsNotEmpty()
-  @Length(6, 6)
-  pincode: string;
+  state: string;
 
   @IsEnum(Language)
   language: Language;
@@ -60,9 +59,13 @@ export class SignupDto {
   @IsNotEmpty()
   deviceId: string;
 
+  @IsString()
+  @IsOptional()
+  profileImage: string;
   @IsArray()
   @IsEnum(CropName, { each: true })
   @ArrayNotEmpty()
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   cropNames: CropName[];
 
   @IsArray()

@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 
 import { AuthData } from '../../common/interfaces/auth.interface';
+import { LocationService } from '../location/location.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
+    private readonly locationService: LocationService,
   ) {}
 
   async signup(signupDto: SignupDto): Promise<AuthData> {
@@ -30,7 +32,6 @@ export class AuthService {
       village,
       taluk,
       district,
-      pincode,
       mobileNumber,
       language,
       identity,
@@ -38,7 +39,9 @@ export class AuthService {
       deviceId,
       cropNames,
       knownLanguages,
+      profileImage,
       preferredPaymentModes,
+      state,
     } = signupDto;
 
     const existingUser =
@@ -46,6 +49,17 @@ export class AuthService {
 
     if (existingUser) {
       throw new UnauthorizedException('user already exists');
+    }
+
+    const pincode = await this.locationService.getPincodeByLocation(
+      state,
+      district,
+      taluk,
+      village,
+    );
+
+    if (!pincode) {
+      throw new BadRequestException('invalid location details');
     }
 
     const user = await this.userService.create({
@@ -62,6 +76,7 @@ export class AuthService {
       cropNames,
       knownLanguages,
       preferredPaymentModes,
+      profileImage,
     });
 
     const session = await this.sessionService.createSession(user, deviceId);
@@ -113,5 +128,15 @@ export class AuthService {
     const { userId, deviceId } = logoutDto;
 
     await this.sessionService.logout(userId, deviceId);
+  }
+
+  async updateProfileImage(userId: string, imageUrl: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    user.profileImage = imageUrl;
+    return this.userService.update(userId, { profileImage: imageUrl });
   }
 }

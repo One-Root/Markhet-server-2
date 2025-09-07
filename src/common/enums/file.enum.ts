@@ -4,6 +4,8 @@ enum Folders {
   CROPS_BANANA = 'crops/banana',
   CROPS_DRY_COCONUT = 'crops/dry_coconut',
   CROPS_SUNFLOWER = 'crops/sunflower',
+  CROPS_MAIZE = 'crops/maize',
+  USER_PROFILES = 'user-profiles',
 }
 
 export { Folders };

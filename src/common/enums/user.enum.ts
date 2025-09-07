@@ -10,6 +10,7 @@ enum Identity {
   FARMER = 'FARMER',
   BUYER = 'BUYER',
   SUPPORT = 'SUPPORT',
+  SYSTEM = 'SYSTEM',
 }
 
 enum PaymentMode {

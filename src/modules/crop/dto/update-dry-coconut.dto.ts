@@ -1,5 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType, IntersectionType } from '@nestjs/mapped-types';
 
 import { CreateDryCoconutDto } from './create-dry-coconut.dto';
 
-export class UpdateDryCoconutDto extends PartialType(CreateDryCoconutDto) {}
+import { CropCustomFieldsDto } from './base-crop.dto';
+
+export class UpdateDryCoconutDto extends IntersectionType(
+  PartialType(CreateDryCoconutDto),
+  CropCustomFieldsDto,
+) {}

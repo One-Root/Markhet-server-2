@@ -31,6 +31,7 @@ import { MarketPriceModule } from './modules/market-price/market-price.module';
 import { HarvestHistoryModule } from './modules/harvest-history/harvest-history.module';
 import { PriorityConfigModule } from './modules/priority-config/priority-config.module';
 import { NotificationTemplateModule } from './modules/notification-template/notification-template.module';
+import { CropCardModule } from './modules/crop-card/crop-card.module';
 
 import { AppController } from './app.controller';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -77,7 +78,9 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     HarvestHistoryModule,
     PriorityConfigModule,
     NotificationTemplateModule,
+    CropModule,
 
+    CropCardModule,
     JwtConfigModule,
     DatabaseConfigModule,
   ],

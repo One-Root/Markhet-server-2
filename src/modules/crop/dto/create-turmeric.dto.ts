@@ -15,12 +15,14 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { TurmericVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateTurmericDto {
+export class CreateTurmericDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsString()
   region?: string;
 
+  @IsOptional()
   @IsEnum(TurmericVariety)
   turmericVariety: TurmericVariety;
 
@@ -31,6 +33,11 @@ export class CreateTurmericDto {
   @IsOptional()
   @IsBoolean()
   isOrganic?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Quantity must be a valid number' })
+  quantity?: number;
 
   @IsOptional()
   @IsInt()

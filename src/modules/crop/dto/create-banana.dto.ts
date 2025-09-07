@@ -15,8 +15,10 @@ import { Type } from 'class-transformer';
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
 import { BananaVariety } from '../../../common/enums/crop.enum';
+import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateBananaDto {
+export class CreateBananaDto extends CropCustomFieldsDto {
+  @IsOptional()
   @IsEnum(BananaVariety)
   bananaVariety: BananaVariety;
 
@@ -29,10 +31,10 @@ export class CreateBananaDto {
   @Min(0)
   tarWeight?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  numberOfTrees?: number;
+  // @IsOptional()
+  // @IsInt()
+  // @Min(0)
+  // numberOfTrees?: number;
 
   @IsOptional()
   @IsInt()

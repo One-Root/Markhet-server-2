@@ -14,24 +14,23 @@ import { Type } from 'class-transformer';
 
 import { MetaDataDto } from '../../../common/dto/meta-data.dto';
 
-import { TenderCoconutVariety } from '../../../common/enums/crop.enum';
+import { MaizeVariety } from '../../../common/enums/crop.enum';
 import { CropCustomFieldsDto } from './base-crop.dto';
 
-export class CreateTenderCoconutDto extends CropCustomFieldsDto {
+export class CreateMaizeDto extends CropCustomFieldsDto {
+  @IsOptional()
+  @IsEnum(MaizeVariety)
+  maizeVariety: MaizeVariety;
+
   @IsOptional()
   @IsNumber()
   @Min(0)
   ageOfTree?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  numberOfTrees?: number;
-
   // @IsOptional()
   // @IsInt()
   // @Min(0)
-  // numberOfNuts?: number;
+  // numberOfTrees?: number;
 
   @IsOptional()
   @IsBoolean()
@@ -39,17 +38,12 @@ export class CreateTenderCoconutDto extends CropCustomFieldsDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  heightOfTree?: number;
+  quantity: number;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
   chutePercentage?: number;
-
-  @IsOptional()
-  @IsEnum(TenderCoconutVariety)
-  tenderCoconutVariety: TenderCoconutVariety;
 
   @IsOptional()
   @IsString()
@@ -58,10 +52,6 @@ export class CreateTenderCoconutDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsString()
   lastHarvestDate?: string;
-
-  @IsOptional()
-  @IsNumber()
-  quantity: number;
 
   @IsOptional()
   @IsInt()
@@ -85,6 +75,10 @@ export class CreateTenderCoconutDto extends CropCustomFieldsDto {
   @IsOptional()
   @IsBoolean()
   hasSpots?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  willYouDryIt?: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })
