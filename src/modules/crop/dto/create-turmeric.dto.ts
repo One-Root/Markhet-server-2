@@ -35,6 +35,11 @@ export class CreateTurmericDto extends CropCustomFieldsDto {
   isOrganic?: boolean;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Quantity must be a valid number' })
+  quantity?: number;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   generalHarvestCycleInDays?: number;
