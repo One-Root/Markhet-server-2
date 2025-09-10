@@ -118,22 +118,45 @@ export class CalculateEntityScoreTask {
         }
 
         const updates: BulkUpdate[] = crops.map((crop) => {
-          let score = this.priorityConfigService.calculateScore(crop, configs);
+          let baseScore = this.priorityConfigService.calculateScore(
+            crop,
+            configs,
+          );
+          let score = baseScore;
 
-          if (crop.cropStatus === CropStatusEnum.PAKKA_READY) {
+          this.logger.log(
+            `Crop ID ${crop.id} | cropName: ${cropName} | baseScore: ${baseScore}`,
+          );
+
+          // Apply extra rules
+          if (crop.cropStatus === 'Pakka Ready') {
             score += 30;
-          } else if (crop.cropStatus === CropStatusEnum.FARMER_REPORTED) {
+            this.logger.log(
+              `Crop ID ${crop.id} | Pakka Ready → +30 (score now: ${score})`,
+            );
+          } else if (crop.cropStatus === 'Farmer Reported') {
             score += 20;
-          } else if (crop.cropStatus === CropStatusEnum.MAYBE_READY) {
-            if (crop.reportedBy === CropReportedByEnum.SUPPORT) {
+            this.logger.log(
+              `Crop ID ${crop.id} | Farmer Reported → +20 (score now: ${score})`,
+            );
+          } else if (crop.cropStatus === 'Maybe Ready') {
+            if (crop.reportedBy === 'Support') {
               score += 15;
+              this.logger.log(
+                `Crop ID ${crop.id} | Maybe Ready (Support) → +15 (score now: ${score})`,
+              );
             } else {
               score += 10;
+              this.logger.log(
+                `Crop ID ${crop.id} | Maybe Ready (Farmer) → +10 (score now: ${score})`,
+              );
             }
           }
 
+          // Cap at 100
           score = Math.min(score, 100);
 
+          // Premium logic
           let isPremium = false;
           if (
             cropName === CropName.TENDER_COCONUT &&
@@ -142,7 +165,15 @@ export class CalculateEntityScoreTask {
             crop.quantity > 500
           ) {
             isPremium = true;
+            this.logger.log(
+              `Crop ID ${crop.id} | Marked as PREMIUM (Tender Coconut, verified & >500 qty)`,
+            );
           }
+
+          // Final summary log for this crop
+          this.logger.log(
+            `Crop ID ${crop.id} | Final Score: ${score} | Premium: ${isPremium}`,
+          );
 
           return { id: crop.id, score, cropName, isPremium };
         });
