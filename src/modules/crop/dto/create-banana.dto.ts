@@ -60,6 +60,10 @@ export class CreateBananaDto extends CropCustomFieldsDto {
   cutType?: string;
 
   @IsOptional()
+  @IsNumber()
+  quantity: number;
+
+  @IsOptional()
   @IsBoolean()
   isReadyToHarvest?: boolean;
 
