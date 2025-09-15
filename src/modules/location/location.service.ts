@@ -18,7 +18,6 @@ export class LocationService {
   constructor(
     @InjectRepository(Location)
     private readonly locationRepository: Repository<Location>,
-
     private readonly httpService: HttpService,
   ) {}
 
@@ -30,7 +29,6 @@ export class LocationService {
 
   async create(createLocationDto: CreateLocationDto): Promise<Location> {
     const location = this.locationRepository.create(createLocationDto);
-
     return this.locationRepository.save(location);
   }
 
@@ -98,7 +96,6 @@ export class LocationService {
 
     if (response.data.status === 'OK') {
       const result = response.data.results[0];
-
       const lat = result.geometry.location.lat;
       const lng = result.geometry.location.lng;
 
@@ -142,5 +139,60 @@ export class LocationService {
     }
 
     return location.pincode;
+  }
+  async getLocationDetailsByCoordinates(
+    lat: number,
+    lng: number,
+  ): Promise<{
+    state: string;
+    district: string;
+    taluk: string;
+    village: string;
+    pincode: string;
+  }> {
+    const response = await firstValueFrom(
+      this.httpService.get(this.endpoint, {
+        params: {
+          latlng: `${lat},${lng}`,
+          key: this.apiKey,
+        },
+      }),
+    );
+
+    if (response.data.status !== 'OK') {
+      throw new HttpException(
+        'Unable to fetch location details from coordinates',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const result = response.data.results[0];
+    const components = result.address_components;
+
+    let state = '';
+    let district = '';
+    let taluk = '';
+    let village = '';
+    let pincode = '';
+
+    for (const c of components) {
+      if (c.types.includes('administrative_area_level_1')) {
+        state = c.long_name;
+      }
+      if (c.types.includes('administrative_area_level_3')) {
+        district = c.long_name;
+      }
+      if (c.types.includes('administrative_area_level_4')) {
+        taluk = c.long_name;
+      }
+      if (c.types.includes('locality') || c.types.includes('sublocality')) {
+        village = c.long_name;
+      }
+      if (c.types.includes('postal_code')) {
+        pincode = c.long_name;
+      }
+    }
+
+    return { state, district, taluk, village, pincode };
   }
 }
