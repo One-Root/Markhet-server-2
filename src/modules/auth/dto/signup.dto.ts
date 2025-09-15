@@ -26,24 +26,33 @@ export class SignupDto {
 
   @IsString()
   @IsOptional()
-  @IsNotEmpty()
   village: string;
 
   @IsValidMobileNumber()
   @Transform(({ value }) => formatMobileNumber(value))
   mobileNumber: string;
 
-  @IsString()
   @IsNotEmpty()
+  lat: number;
+
+  @IsNotEmpty()
+  lng: number;
+
+  @IsString()
+  @IsOptional()
   taluk: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   district: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   state: string;
+
+  @Length(6, 6)
+  @IsOptional()
+  pincode: string;
 
   @IsEnum(Language)
   language: Language;

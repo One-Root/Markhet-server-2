@@ -88,6 +88,21 @@ export class LocationController {
       villages,
     );
   }
+  @Get('reverse-geocode')
+  async getLocationByCoordinates(
+    @Query('lat') lat: number,
+    @Query('lng') lng: number,
+  ): Promise<ApiResponse<any>> {
+    const details = await this.locationService.getLocationDetailsByCoordinates(
+      lat,
+      lng,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'location details fetched successfully',
+      details,
+    );
+  }
 
   @Get(':pincode')
   async getLocationByPincode(

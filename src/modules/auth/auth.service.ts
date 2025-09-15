@@ -42,31 +42,49 @@ export class AuthService {
       profileImage,
       preferredPaymentModes,
       state,
+      lat,
+      lng,
     } = signupDto;
 
+    // 1. Check existing user
     const existingUser =
       await this.userService.findByMobileNumber(mobileNumber);
-
     if (existingUser) {
       throw new UnauthorizedException('user already exists');
     }
 
-    const pincode = await this.locationService.getPincodeByLocation(
-      state,
-      district,
-      taluk,
-      village,
+    // 2. Fetch location from Google Maps using lat/lng
+    const location = await this.locationService.getLocationDetailsByCoordinates(
+      lat,
+      lng,
     );
+
+    // 3. Apply manual override if user provided
+    const finalState = state || location.state;
+    const finalDistrict = district || location.district;
+    const finalTaluk = taluk || location.taluk;
+    const finalVillage = village || location.village;
+    const pincode = signupDto.pincode || location.pincode;
+
+    // 4. Get pincode from DB
+    // const pincode = await this.locationService.getPincodeByLocation(
+    //   finalState,
+    //   finalDistrict,
+    //   finalTaluk,
+    //   finalVillage,
+    // );
 
     if (!pincode) {
       throw new BadRequestException('invalid location details');
     }
 
+    // 5. Create user
     const user = await this.userService.create({
       name,
-      village,
-      taluk,
-      district,
+      village: finalVillage,
+      taluk: finalTaluk,
+      district: finalDistrict,
+      state: finalState,
       pincode,
       mobileNumber,
       language,
@@ -79,6 +97,7 @@ export class AuthService {
       profileImage,
     });
 
+    // 6. Create session
     const session = await this.sessionService.createSession(user, deviceId);
 
     return {
