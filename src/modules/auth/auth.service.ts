@@ -42,8 +42,8 @@ export class AuthService {
       profileImage,
       preferredPaymentModes,
       state,
-      lat,
-      lng,
+      latitude,
+      longitude,
     } = signupDto;
 
     // 1. Check existing user
@@ -55,8 +55,8 @@ export class AuthService {
 
     // 2. Fetch location from Google Maps using lat/lng
     const location = await this.locationService.getLocationDetailsByCoordinates(
-      lat,
-      lng,
+      latitude,
+      longitude,
     );
 
     // 3. Apply manual override if user provided
@@ -85,6 +85,8 @@ export class AuthService {
       taluk: finalTaluk,
       district: finalDistrict,
       state: finalState,
+      latitude,
+      longitude,
       pincode,
       mobileNumber,
       language,

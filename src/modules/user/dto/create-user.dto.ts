@@ -32,6 +32,12 @@ export class CreateUserDto {
   @Transform(({ value }) => formatMobileNumber(value))
   mobileNumber: string;
 
+  @IsNotEmpty()
+  latitude: number;
+
+  @IsNotEmpty()
+  longitude: number;
+
   @IsString()
   @IsOptional()
   taluk: string;

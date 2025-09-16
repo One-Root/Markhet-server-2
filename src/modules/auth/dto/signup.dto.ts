@@ -33,10 +33,10 @@ export class SignupDto {
   mobileNumber: string;
 
   @IsNotEmpty()
-  lat: number;
+  latitude: number;
 
   @IsNotEmpty()
-  lng: number;
+  longitude: number;
 
   @IsString()
   @IsOptional()

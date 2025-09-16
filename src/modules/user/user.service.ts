@@ -1,6 +1,11 @@
 import { In, Not, Repository } from 'typeorm';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { plainToClass } from 'class-transformer';
@@ -31,18 +36,29 @@ export class UserService {
     const user = this.userRepository.create(createUserDto);
 
     try {
-      const location = await this.getLocationService.getLatLngByAddress(
-        user.village,
-      );
-      user.latitude = location.lat;
-      user.longitude = location.lng;
+      if (!user.latitude || !user.longitude) {
+        throw new HttpException(
+          'Latitude and Longitude are required to signup',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const details =
+        await this.getLocationService.getLocationDetailsByCoordinates(
+          user.latitude,
+          user.longitude,
+        );
+
+      // user.state = details.state;
+      user.district = details.district;
+      user.taluk = details.taluk;
+      user.village = details.village || user.village;
+      user.pincode = details.pincode;
     } catch (error) {
       console.warn(
-        'Failed to fetch location, proceeding without coordinates:',
+        'Failed to fetch location details, proceeding with only coordinates:',
         error.message,
       );
-      user.latitude = null;
-      user.longitude = null;
     }
 
     return this.userRepository.save(user);
