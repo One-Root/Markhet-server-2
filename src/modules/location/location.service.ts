@@ -182,7 +182,7 @@ export class LocationService {
       if (c.types.includes('administrative_area_level_3')) {
         district = c.long_name;
       }
-      if (c.types.includes('administrative_area_level_4')) {
+      if (c.types.includes('administrative_area_level_3')) {
         taluk = c.long_name;
       }
       if (c.types.includes('locality') || c.types.includes('sublocality')) {

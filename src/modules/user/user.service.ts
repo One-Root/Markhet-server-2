@@ -35,29 +35,10 @@ export class UserService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const user = this.userRepository.create(createUserDto);
 
-    try {
-      if (!user.latitude || !user.longitude) {
-        throw new HttpException(
-          'Latitude and Longitude are required to signup',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const details =
-        await this.getLocationService.getLocationDetailsByCoordinates(
-          user.latitude,
-          user.longitude,
-        );
-
-      // user.state = details.state;
-      user.district = details.district;
-      user.taluk = details.taluk;
-      user.village = details.village || user.village;
-      user.pincode = details.pincode;
-    } catch (error) {
-      console.warn(
-        'Failed to fetch location details, proceeding with only coordinates:',
-        error.message,
+    if (!user.district || !user.taluk || !user.village || !user.pincode) {
+      throw new HttpException(
+        'Complete location details are required to signup',
+        HttpStatus.BAD_REQUEST,
       );
     }
 

@@ -32,6 +32,10 @@ export class AuthService {
       village,
       taluk,
       district,
+      state,
+      pincode,
+      latitude,
+      longitude,
       mobileNumber,
       language,
       identity,
@@ -41,50 +45,26 @@ export class AuthService {
       knownLanguages,
       profileImage,
       preferredPaymentModes,
-      state,
-      latitude,
-      longitude,
     } = signupDto;
 
-    // 1. Check existing user
+    // 1. Check if user exists
     const existingUser =
       await this.userService.findByMobileNumber(mobileNumber);
     if (existingUser) {
       throw new UnauthorizedException('user already exists');
     }
 
-    // 2. Fetch location from Google Maps using lat/lng
-    const location = await this.locationService.getLocationDetailsByCoordinates(
-      latitude,
-      longitude,
-    );
-
-    // 3. Apply manual override if user provided
-    const finalState = state || location.state;
-    const finalDistrict = district || location.district;
-    const finalTaluk = taluk || location.taluk;
-    const finalVillage = village || location.village;
-    const pincode = signupDto.pincode || location.pincode;
-
-    // 4. Get pincode from DB
-    // const pincode = await this.locationService.getPincodeByLocation(
-    //   finalState,
-    //   finalDistrict,
-    //   finalTaluk,
-    //   finalVillage,
-    // );
-
-    if (!pincode) {
-      throw new BadRequestException('invalid location details');
+    if (!state || !district || !taluk || !village || !pincode) {
+      throw new BadRequestException('Location details are required in signup');
     }
 
-    // 5. Create user
+    // 2. Create user
     const user = await this.userService.create({
       name,
-      village: finalVillage,
-      taluk: finalTaluk,
-      district: finalDistrict,
-      state: finalState,
+      village,
+      taluk,
+      district,
+      state,
       latitude,
       longitude,
       pincode,
@@ -99,7 +79,7 @@ export class AuthService {
       profileImage,
     });
 
-    // 6. Create session
+    // 3. Create session
     const session = await this.sessionService.createSession(user, deviceId);
 
     return {
