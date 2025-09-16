@@ -141,8 +141,8 @@ export class LocationService {
     return location.pincode;
   }
   async getLocationDetailsByCoordinates(
-    lat: number,
-    lng: number,
+    latitude: number,
+    longitude: number,
   ): Promise<{
     state: string;
     district: string;
@@ -153,7 +153,7 @@ export class LocationService {
     const response = await firstValueFrom(
       this.httpService.get(this.endpoint, {
         params: {
-          latlng: `${lat},${lng}`,
+          latlng: `${latitude},${longitude}`,
           key: this.apiKey,
         },
       }),

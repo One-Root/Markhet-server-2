@@ -90,12 +90,12 @@ export class LocationController {
   }
   @Get('reverse-geocode')
   async getLocationByCoordinates(
-    @Query('lat') lat: number,
-    @Query('lng') lng: number,
+    @Query('latitude') latitude: number,
+    @Query('longitude') longitude: number,
   ): Promise<ApiResponse<any>> {
     const details = await this.locationService.getLocationDetailsByCoordinates(
-      lat,
-      lng,
+      latitude,
+      longitude,
     );
     return new ApiResponse(
       HttpStatus.OK,
