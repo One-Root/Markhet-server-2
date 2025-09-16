@@ -35,6 +35,7 @@ import { CropCardModule } from './modules/crop-card/crop-card.module';
 
 import { AppController } from './app.controller';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { PoModule } from './modules/PO/Po.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     PriorityConfigModule,
     NotificationTemplateModule,
     CropModule,
+    PoModule,
 
     CropCardModule,
     JwtConfigModule,
