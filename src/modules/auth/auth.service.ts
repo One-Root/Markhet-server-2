@@ -58,6 +58,9 @@ export class AuthService {
       throw new BadRequestException('Location details are required in signup');
     }
 
+    // ✅ Empty string fallback for pincode
+    const normalizedPincode = pincode || '';
+
     // 2. Create user
     const user = await this.userService.create({
       name,
@@ -67,7 +70,7 @@ export class AuthService {
       state,
       latitude,
       longitude,
-      pincode,
+      pincode: normalizedPincode,
       mobileNumber,
       language,
       identity,

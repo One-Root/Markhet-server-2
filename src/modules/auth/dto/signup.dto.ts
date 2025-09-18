@@ -50,9 +50,9 @@ export class SignupDto {
   @IsOptional()
   state: string;
 
-  @Length(6, 6)
   @IsOptional()
-  pincode: string;
+  @IsString()
+  pincode: string = '';
 
   @IsEnum(Language)
   language: Language;

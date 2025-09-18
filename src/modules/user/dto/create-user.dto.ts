@@ -50,10 +50,9 @@ export class CreateUserDto {
   @IsOptional()
   state: string;
 
-  @IsString()
   @IsOptional()
-  @Length(6, 6)
-  pincode: string;
+  @IsString()
+  pincode: string = '';
 
   @IsOptional()
   @IsString()
