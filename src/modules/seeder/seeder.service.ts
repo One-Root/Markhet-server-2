@@ -6,20 +6,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 
-import { Location } from '@one-root/markhet-core';
+// import { Location } from '@one-root/markhet-core';
+import { NewLocation } from '@one-root/markhet-core';
 
 @Injectable()
 export class SeederService {
   private readonly logger = new Logger(SeederService.name);
 
   constructor(
-    @InjectRepository(Location)
-    private readonly locationRepository: Repository<Location>,
+    @InjectRepository(NewLocation)
+    private readonly newlLocationRepository: Repository<NewLocation>,
   ) {}
 
   async seedLocations(): Promise<void> {
     try {
-      const filePath = path.join(__dirname, 'data', 'locations-json.json');
+      const filePath = path.join(__dirname, 'data', 'newlocations.json');
 
       const data = fs.readFileSync(filePath, 'utf-8');
 
@@ -31,18 +32,17 @@ export class SeederService {
       for (let i = 0; i < totalRecords; i += batchSize) {
         const batch = json.slice(i, i + batchSize);
 
-        const locations = batch.map((location: any) =>
-          this.locationRepository.create({
-            village: location.village,
-            officeName: location.officeName,
-            pincode: location.pincode,
-            taluk: location.taluk,
-            district: location.district,
-            state: location.state,
+        const newlocations = batch.map((newlocations: any) =>
+          this.newlLocationRepository.create({
+            village: newlocations.village,
+
+            taluk: newlocations.taluk,
+            district: newlocations.district,
+            state: newlocations.state,
           }),
         );
 
-        await this.locationRepository.save(locations);
+        await this.newlLocationRepository.save(newlocations);
       }
 
       this.logger.log('locations injected successfully');

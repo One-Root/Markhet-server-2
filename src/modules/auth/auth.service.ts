@@ -14,7 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 
 import { AuthData } from '../../common/interfaces/auth.interface';
-import { LocationService } from '../location/location.service';
+// import { LocationService } from '../location/location.service';
+import { NewLocationService } from '../newlocation/newlocation.service';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,8 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
-    private readonly locationService: LocationService,
+    // private readonly locationService: LocationService,
+    private readonly newlocationService: NewLocationService,
   ) {}
 
   async signup(signupDto: SignupDto): Promise<AuthData> {
@@ -34,8 +36,8 @@ export class AuthService {
       district,
       state,
       pincode,
-      latitude,
-      longitude,
+      // latitude,
+      // longitude,
       mobileNumber,
       language,
       identity,
@@ -54,7 +56,7 @@ export class AuthService {
       throw new UnauthorizedException('user already exists');
     }
 
-    if (!state || !district || !taluk || !village || !pincode) {
+    if (!state || !district || !taluk || !village) {
       throw new BadRequestException('Location details are required in signup');
     }
 
@@ -68,8 +70,8 @@ export class AuthService {
       taluk,
       district,
       state,
-      latitude,
-      longitude,
+      // latitude,
+      // longitude,
       pincode: normalizedPincode,
       mobileNumber,
       language,

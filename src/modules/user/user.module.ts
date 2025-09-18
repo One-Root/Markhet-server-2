@@ -10,10 +10,11 @@ import { UserController } from './user.controller';
 import { SessionModule } from '../session/session.module';
 
 import { GetStreamService } from '../../services/get-stream.service';
-import { LocationModule } from '../location/location.module';
+// import { LocationModule } from '../location/location.module';
+import { NewLocationModule } from '../newlocation/newlocation.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), SessionModule, LocationModule],
+  imports: [TypeOrmModule.forFeature([User]), SessionModule, NewLocationModule],
   controllers: [UserController],
   providers: [UserService, GetStreamService],
   exports: [UserService],

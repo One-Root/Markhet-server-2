@@ -21,7 +21,8 @@ import { GetUsersQueryParamsDto } from './dto/get-users-query-params.dto';
 import { Identity } from '../../common/enums/user.enum';
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
-import { LocationService } from '../location/location.service';
+// import { LocationService } from '../location/location.service';
+import { NewLocationService } from '../newlocation/newlocation.service';
 
 @Injectable()
 export class UserService {
@@ -29,13 +30,13 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly getStreamService: GetStreamService,
-    private readonly getLocationService: LocationService,
+    private readonly getLocationService: NewLocationService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const user = this.userRepository.create(createUserDto);
 
-    if (!user.district || !user.taluk || !user.village || !user.pincode) {
+    if (!user.district || !user.taluk || !user.village) {
       throw new HttpException(
         'Complete location details are required to signup',
         HttpStatus.BAD_REQUEST,

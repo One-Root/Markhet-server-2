@@ -1,0 +1,161 @@
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { HttpService } from '@nestjs/axios';
+
+import { Repository } from 'typeorm';
+import { firstValueFrom } from 'rxjs';
+
+import { NewLocation } from '@one-root/markhet-core';
+
+import { CreateNewLocationDto } from './dto/create-new-location.dto';
+@Injectable()
+export class NewLocationService {
+  private readonly apiKey = process.env.GCP_GOOGLE_MAPS_API_KEY;
+  private readonly endpoint =
+    'https://maps.googleapis.com/maps/api/geocode/json';
+
+  constructor(
+    @InjectRepository(NewLocation)
+    private readonly newlocationRepository: Repository<NewLocation>,
+    private readonly httpService: HttpService,
+  ) {}
+
+  async create(
+    createNewLocationDto: CreateNewLocationDto,
+  ): Promise<NewLocation> {
+    const newlocation = this.newlocationRepository.create(createNewLocationDto);
+    return this.newlocationRepository.save(newlocation);
+  }
+
+  async getAllStates(): Promise<string[]> {
+    const results = await this.newlocationRepository
+      .createQueryBuilder('location')
+      .select('DISTINCT location.state', 'state')
+      .getRawMany();
+
+    return results.map((r) => r.state);
+  }
+
+  async getDistrictsByState(state: string): Promise<string[]> {
+    const results = await this.newlocationRepository
+      .createQueryBuilder('location')
+      .select('DISTINCT location.district', 'district')
+      .where('LOWER(location.state) = LOWER(:state)', { state })
+      .getRawMany();
+    console.log('Raw district results:', results);
+
+    return results.map((r) => r.district);
+  }
+
+  async getTaluksByDistrict(
+    state: string,
+    district: string,
+  ): Promise<string[]> {
+    const results = await this.newlocationRepository
+      .createQueryBuilder('location')
+      .select('DISTINCT location.taluk', 'taluk')
+      .where('LOWER(location.state) = LOWER(:state)', { state })
+      .andWhere('LOWER(location.district) = LOWER(:district)', { district })
+      .getRawMany();
+
+    return results.map((r) => r.taluk);
+  }
+
+  async getVillagesByTaluk(
+    state: string,
+    district: string,
+    taluk: string,
+  ): Promise<string[]> {
+    const results = await this.newlocationRepository
+      .createQueryBuilder('location')
+      .select('DISTINCT location.village', 'village')
+      .where('LOWER(location.state) = LOWER(:state)', { state })
+      .andWhere('LOWER(location.district) = LOWER(:district)', { district })
+      .andWhere('LOWER(location.taluk) = LOWER(:taluk)', { taluk })
+      .getRawMany();
+
+    return results.map((r) => r.village);
+  }
+
+  async getLatLngByAddress(
+    address: string,
+  ): Promise<{ lat: number; lng: number }> {
+    const response = await firstValueFrom(
+      this.httpService.get(this.endpoint, {
+        params: {
+          address: address,
+          key: this.apiKey,
+        },
+      }),
+    );
+
+    if (response.data.status === 'OK') {
+      const result = response.data.results[0];
+      const lat = result.geometry.location.lat;
+      const lng = result.geometry.location.lng;
+
+      return { lat, lng };
+    } else {
+      throw new HttpException(
+        'unable to fetch coordinates for the provided address',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async getLocationDetailsByCoordinates(
+    latitude: number,
+    longitude: number,
+  ): Promise<{
+    state: string;
+    district: string;
+    taluk: string;
+    village: string;
+    pincode: string;
+  }> {
+    const response = await firstValueFrom(
+      this.httpService.get(this.endpoint, {
+        params: {
+          latlng: `${latitude},${longitude}`,
+          key: this.apiKey,
+        },
+      }),
+    );
+
+    if (response.data.status !== 'OK') {
+      throw new HttpException(
+        'Unable to fetch location details from coordinates',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const result = response.data.results[0];
+    const components = result.address_components;
+
+    let state = '';
+    let district = '';
+    let taluk = '';
+    let village = '';
+    let pincode = '';
+
+    for (const c of components) {
+      if (c.types.includes('administrative_area_level_1')) {
+        state = c.long_name;
+      }
+      if (c.types.includes('administrative_area_level_3')) {
+        district = c.long_name;
+      }
+      if (c.types.includes('administrative_area_level_3')) {
+        taluk = c.long_name;
+      }
+      if (c.types.includes('locality') || c.types.includes('sublocality')) {
+        village = c.long_name;
+      }
+      if (c.types.includes('postal_code')) {
+        pincode = c.long_name;
+      }
+    }
+
+    return { state, district, taluk, village, pincode };
+  }
+}
