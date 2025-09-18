@@ -59,6 +59,10 @@ export class CreateMaizeDto extends CropCustomFieldsDto {
   nutsFromLastHarvest?: number;
 
   @IsOptional()
+  @IsNumber()
+  moisturePercent?: number;
+
+  @IsOptional()
   @IsBoolean()
   isReadyToHarvest?: boolean;
 
