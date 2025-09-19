@@ -76,9 +76,6 @@ export class CalculateNextHarvestDateTask {
             cropName,
             nextHarvestDate,
             lastHarvestDate: crop.nextHarvestDate,
-            isReadyToHarvest: false,
-            cropStatus: CropStatusEnum.NOT_READY,
-            reportedBy: CropReportedByEnum.SYSTEM,
           };
         });
 
@@ -87,20 +84,6 @@ export class CalculateNextHarvestDateTask {
         this.logger.log(
           `processed and updated next harvest dates for ${crops.length} crops (crop name: ${cropName}).`,
         );
-
-        for (const crop of crops) {
-          try {
-            await this.harvestHistoryService.create(user, {
-              cropId: crop.id,
-              cropName,
-              status: HarvestStatus.OFF,
-            });
-          } catch (error) {
-            this.logger.error(
-              `Failed to log harvest history for crop ${crop.id}: ${error.message}`,
-            );
-          }
-        }
 
         page++;
       }
