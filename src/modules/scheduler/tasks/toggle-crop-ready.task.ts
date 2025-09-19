@@ -9,7 +9,12 @@ import { HarvestHistoryService } from 'src/modules/harvest-history/harvest-histo
 import { UserService } from 'src/modules/user/user.service';
 import { HarvestStatus } from '../../../common/enums/harvest-history.enum';
 import { ChatraceService } from 'src/modules/notification/chatrace/chatrace.service';
-import { DryCoconut, TenderCoconut } from '@one-root/markhet-core/dist';
+import {
+  DryCoconut,
+  TenderCoconut,
+  Sunflower,
+  Maize,
+} from '@one-root/markhet-core/dist';
 import { CropReportedByEnum, CropStatusEnum } from 'src/common/enums/crop.enum';
 
 @Injectable()
@@ -28,7 +33,20 @@ export class ToggleCropReadyTask {
   async toggleReadyToHarvest() {
     this.logger.log('Starting toggle crop ready process...');
 
-    const cropNames = [CropName.TENDER_COCONUT, CropName.DRY_COCONUT];
+    const cropNames = [
+      CropName.TENDER_COCONUT,
+      CropName.DRY_COCONUT,
+      CropName.MAIZE,
+      CropName.SUNFLOWER,
+    ];
+
+    const cropDisplayNames = {
+      [CropName.TENDER_COCONUT]: 'ಯಾಲ್ನೀರು',
+      [CropName.DRY_COCONUT]: 'ತೆಂಗಿನ ಕಾಯಿ',
+      [CropName.MAIZE]: 'ಮಕ್ಕಿ',
+      [CropName.SUNFLOWER]: 'ಸೂರ್ಯಕಾಂತಿ',
+    };
+
     const user = await this.userService.findByMobileNumber('+919458001001');
     const today = new Date();
 
@@ -73,17 +91,24 @@ export class ToggleCropReadyTask {
           }
 
           try {
-            await this.chatraceService.sendRTHMessage({
+            // Base message payload
+            const messagePayload: any = {
               number: crop.farm.user.mobileNumber,
               name: crop.farm.user.name,
               NHD: String(crop.nextHarvestDate),
-              cropName:
-                cropName === CropName.TENDER_COCONUT
-                  ? 'ಯಾಲ್ನೀರು'
-                  : 'ತೆಂಗಿನ ಕಾಯಿ',
-              noOfTrees: crop.numberOfTrees,
+              cropName: cropDisplayNames[cropName],
               flowId: 1753170223469,
-            });
+            };
+
+            // Add noOfTrees only for coconut crops
+            if (
+              cropName === CropName.TENDER_COCONUT ||
+              cropName === CropName.DRY_COCONUT
+            ) {
+              messagePayload.noOfTrees = crop.numberOfTrees;
+            }
+
+            await this.chatraceService.sendRTHMessage(messagePayload);
           } catch (error) {
             this.logger.error(
               `Failed to send RTH message for crop ${crop.id}: ${error.message}`,
