@@ -26,25 +26,33 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  @IsNotEmpty()
   village: string;
 
   @IsValidMobileNumber()
   @Transform(({ value }) => formatMobileNumber(value))
   mobileNumber: string;
 
+  // @IsNotEmpty()
+  // latitude: number;
+
+  // @IsNotEmpty()
+  // longitude: number;
+
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   taluk: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   district: string;
 
   @IsString()
-  @IsNotEmpty()
-  @Length(6, 6)
-  pincode: string;
+  @IsOptional()
+  state: string;
+
+  @IsOptional()
+  @IsString()
+  pincode: string = '';
 
   @IsOptional()
   @IsString()

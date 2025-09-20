@@ -5,35 +5,30 @@ import { HttpService } from '@nestjs/axios';
 import { Repository } from 'typeorm';
 import { firstValueFrom } from 'rxjs';
 
-import { Location } from '@one-root/markhet-core';
+import { NewLocation } from '@one-root/markhet-core';
 
-import { CreateLocationDto } from './dto/create-location.dto';
-
+import { CreateNewLocationDto } from './dto/create-new-location.dto';
 @Injectable()
-export class LocationService {
+export class NewLocationService {
   private readonly apiKey = process.env.GCP_GOOGLE_MAPS_API_KEY;
   private readonly endpoint =
     'https://maps.googleapis.com/maps/api/geocode/json';
 
   constructor(
-    @InjectRepository(Location)
-    private readonly locationRepository: Repository<Location>,
+    @InjectRepository(NewLocation)
+    private readonly newlocationRepository: Repository<NewLocation>,
     private readonly httpService: HttpService,
   ) {}
 
-  find(pincode: string): Promise<Location[]> {
-    return this.locationRepository.find({
-      where: { pincode },
-    });
-  }
-
-  async create(createLocationDto: CreateLocationDto): Promise<Location> {
-    const location = this.locationRepository.create(createLocationDto);
-    return this.locationRepository.save(location);
+  async create(
+    createNewLocationDto: CreateNewLocationDto,
+  ): Promise<NewLocation> {
+    const newlocation = this.newlocationRepository.create(createNewLocationDto);
+    return this.newlocationRepository.save(newlocation);
   }
 
   async getAllStates(): Promise<string[]> {
-    const results = await this.locationRepository
+    const results = await this.newlocationRepository
       .createQueryBuilder('location')
       .select('DISTINCT location.state', 'state')
       .getRawMany();
@@ -42,7 +37,7 @@ export class LocationService {
   }
 
   async getDistrictsByState(state: string): Promise<string[]> {
-    const results = await this.locationRepository
+    const results = await this.newlocationRepository
       .createQueryBuilder('location')
       .select('DISTINCT location.district', 'district')
       .where('LOWER(location.state) = LOWER(:state)', { state })
@@ -56,7 +51,7 @@ export class LocationService {
     state: string,
     district: string,
   ): Promise<string[]> {
-    const results = await this.locationRepository
+    const results = await this.newlocationRepository
       .createQueryBuilder('location')
       .select('DISTINCT location.taluk', 'taluk')
       .where('LOWER(location.state) = LOWER(:state)', { state })
@@ -71,7 +66,7 @@ export class LocationService {
     district: string,
     taluk: string,
   ): Promise<string[]> {
-    const results = await this.locationRepository
+    const results = await this.newlocationRepository
       .createQueryBuilder('location')
       .select('DISTINCT location.village', 'village')
       .where('LOWER(location.state) = LOWER(:state)', { state })
@@ -108,38 +103,6 @@ export class LocationService {
     }
   }
 
-  async getPincodeByLocation(
-    state: string,
-    district: string,
-    taluk: string,
-    village: string,
-  ): Promise<string> {
-    const s = state.trim();
-    const d = district.trim();
-    const t = taluk.trim();
-    const v = village.trim();
-
-    const location = await this.locationRepository
-      .createQueryBuilder('location')
-      .where('LOWER(TRIM(location.state)) = LOWER(:state)', { state: s })
-      .andWhere('LOWER(TRIM(location.district)) = LOWER(:district)', {
-        district: d,
-      })
-      .andWhere('LOWER(TRIM(location.taluk)) = LOWER(:taluk)', { taluk: t })
-      .andWhere('LOWER(TRIM(location.village)) = LOWER(:village)', {
-        village: v,
-      })
-      .getOne();
-
-    if (!location) {
-      throw new HttpException(
-        `No pincode found for location: ${v}, ${t}, ${d}, ${s}`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return location.pincode;
-  }
   async getLocationDetailsByCoordinates(
     latitude: number,
     longitude: number,

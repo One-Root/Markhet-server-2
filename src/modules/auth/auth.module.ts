@@ -11,7 +11,8 @@ import { OtpModule } from '../../modules/otp/otp.module';
 import { SessionModule } from '../session/session.module';
 import { JwtConfigModule } from '../../config/jwt/jwt-config.module';
 import { FileModule } from '../file/file.module';
-import { LocationModule } from '../location/location.module';
+// import { LocationModule } from '../location/location.module';
+import { NewLocationModule } from '../newlocation/newlocation.module';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { LocationModule } from '../location/location.module';
     UserModule,
     SessionModule,
     FileModule,
-    LocationModule,
+    NewLocationModule,
   ],
   controllers: [AuthController],
   providers: [JwtAuthGuard, JwtStrategy, AuthService],

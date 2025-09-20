@@ -23,6 +23,7 @@ import { TicketModule } from './modules/ticket/ticket.module';
 import { ChannelModule } from './modules/channel/channel.module';
 import { SessionModule } from './modules/session/session.module';
 import { LocationModule } from './modules/location/location.module';
+import { NewLocationModule } from './modules/newlocation/newlocation.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { DailyPriceModule } from './modules/daily-price/daily-price.module';
 import { TranslationModule } from './modules/translation/translation.module';
@@ -35,6 +36,7 @@ import { CropCardModule } from './modules/crop-card/crop-card.module';
 
 import { AppController } from './app.controller';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { PoModule } from './modules/PO/po.module';
 
 @Module({
   imports: [
@@ -79,6 +81,8 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     PriorityConfigModule,
     NotificationTemplateModule,
     CropModule,
+    PoModule,
+    NewLocationModule,
 
     CropCardModule,
     JwtConfigModule,

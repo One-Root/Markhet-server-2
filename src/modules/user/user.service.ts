@@ -1,6 +1,11 @@
 import { In, Not, Repository } from 'typeorm';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { plainToClass } from 'class-transformer';
@@ -16,7 +21,8 @@ import { GetUsersQueryParamsDto } from './dto/get-users-query-params.dto';
 import { Identity } from '../../common/enums/user.enum';
 import { applyOperator } from '../../common/utils/apply-operator.util';
 import { BulkUpdate } from '../../common/interfaces/scheduler.interface';
-import { LocationService } from '../location/location.service';
+// import { LocationService } from '../location/location.service';
+import { NewLocationService } from '../newlocation/newlocation.service';
 
 @Injectable()
 export class UserService {
@@ -24,25 +30,17 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly getStreamService: GetStreamService,
-    private readonly getLocationService: LocationService,
+    private readonly getLocationService: NewLocationService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const user = this.userRepository.create(createUserDto);
 
-    try {
-      const location = await this.getLocationService.getLatLngByAddress(
-        user.village,
+    if (!user.district || !user.taluk || !user.village) {
+      throw new HttpException(
+        'Complete location details are required to signup',
+        HttpStatus.BAD_REQUEST,
       );
-      user.latitude = location.lat;
-      user.longitude = location.lng;
-    } catch (error) {
-      console.warn(
-        'Failed to fetch location, proceeding without coordinates:',
-        error.message,
-      );
-      user.latitude = null;
-      user.longitude = null;
     }
 
     return this.userRepository.save(user);

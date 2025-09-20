@@ -27,11 +27,6 @@ export class CreateFarmDto {
   @IsString()
   district: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Length(6, 6)
-  pincode: string;
-
   @IsObject()
   coordinates: {
     type: GeoJsonType;

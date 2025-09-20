@@ -14,7 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 
 import { AuthData } from '../../common/interfaces/auth.interface';
-import { LocationService } from '../location/location.service';
+// import { LocationService } from '../location/location.service';
+import { NewLocationService } from '../newlocation/newlocation.service';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,8 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
-    private readonly locationService: LocationService,
+    // private readonly locationService: LocationService,
+    private readonly newlocationService: NewLocationService,
   ) {}
 
   async signup(signupDto: SignupDto): Promise<AuthData> {
@@ -32,6 +34,10 @@ export class AuthService {
       village,
       taluk,
       district,
+      state,
+      pincode,
+      // latitude,
+      // longitude,
       mobileNumber,
       language,
       identity,
@@ -41,33 +47,32 @@ export class AuthService {
       knownLanguages,
       profileImage,
       preferredPaymentModes,
-      state,
     } = signupDto;
 
+    // 1. Check if user exists
     const existingUser =
       await this.userService.findByMobileNumber(mobileNumber);
-
     if (existingUser) {
       throw new UnauthorizedException('user already exists');
     }
 
-    const pincode = await this.locationService.getPincodeByLocation(
-      state,
-      district,
-      taluk,
-      village,
-    );
-
-    if (!pincode) {
-      throw new BadRequestException('invalid location details');
+    if (!state || !district || !taluk || !village) {
+      throw new BadRequestException('Location details are required in signup');
     }
 
+    // ✅ Empty string fallback for pincode
+    const normalizedPincode = pincode || '';
+
+    // 2. Create user
     const user = await this.userService.create({
       name,
       village,
       taluk,
       district,
-      pincode,
+      state,
+      // latitude,
+      // longitude,
+      pincode: normalizedPincode,
       mobileNumber,
       language,
       identity,
@@ -79,6 +84,7 @@ export class AuthService {
       profileImage,
     });
 
+    // 3. Create session
     const session = await this.sessionService.createSession(user, deviceId);
 
     return {
