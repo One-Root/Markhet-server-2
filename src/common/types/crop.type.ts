@@ -5,6 +5,7 @@ import {
   TenderCoconut,
   Sunflower,
   Maize,
+  Jowar,
 } from '@one-root/markhet-core';
 
 type CropType =
@@ -13,6 +14,7 @@ type CropType =
   | Banana
   | DryCoconut
   | Sunflower
-  | Maize;
+  | Maize
+  | Jowar;
 
 export { CropType };

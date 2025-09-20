@@ -24,6 +24,7 @@ import {
   TenderCoconut,
   Sunflower,
   Maize,
+  Jowar,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -53,9 +54,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateMaizeDto } from './dto/create-maize.dto';
 import { CropStatusEnum } from '../../common/enums/farm.enum';
 import { UpdateMaizeDto } from './dto/update-maize-dto';
+import { CreateJowarDto } from './dto/create-jowar.dto';
+import { UpdateJowarDto } from './dto/update-jowar.dto';
 
 @Controller('crops')
-// @UseGuards(JwtAuthGuard, SessionGuard)
+@UseGuards(JwtAuthGuard, SessionGuard)
 export class CropController {
   constructor(private readonly cropService: CropService) {}
 
@@ -100,6 +103,20 @@ export class CropController {
     return new ApiResponse(
       HttpStatus.CREATED,
       'maize crop created succesfully',
+      crop,
+    );
+  }
+
+  @Post(':farmId/jowar')
+  @UseGuards(JwtAuthGuard, SessionGuard)
+  async createJowarCrop(
+    @Param('farmId', ParseUUIDPipe) farmId: string,
+    @Body() createJowarDto: CreateJowarDto,
+  ): Promise<ApiResponse<Jowar>> {
+    const crop = await this.cropService.createJowar(farmId, createJowarDto);
+    return new ApiResponse(
+      HttpStatus.CREATED,
+      'jowar crop created succesfully',
       crop,
     );
   }
@@ -280,6 +297,17 @@ export class CropController {
   ): Promise<ApiResponse<Maize>> {
     const crop = await this.cropService.updateMaize(cropId, UpdateMaizeDto);
 
+    return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
+  }
+
+  @Patch('jowar/:cropId')
+  @UseGuards(JwtAuthGuard, SessionGuard)
+  async updateJowar(
+    @Param('cropId', ParseUUIDPipe) cropId: string,
+
+    @Body() UpdateJowarDto: UpdateJowarDto,
+  ): Promise<ApiResponse<Jowar>> {
+    const crop = await this.cropService.updateJowar(cropId, UpdateJowarDto);
     return new ApiResponse(HttpStatus.OK, 'crop updated successfully', crop);
   }
 

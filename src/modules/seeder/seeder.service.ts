@@ -20,7 +20,7 @@ export class SeederService {
 
   async seedLocations(): Promise<void> {
     try {
-      const filePath = path.join(__dirname, 'data', 'newlocations.json');
+      const filePath = path.join(__dirname, 'data', 'Andhra.json');
 
       const data = fs.readFileSync(filePath, 'utf-8');
 

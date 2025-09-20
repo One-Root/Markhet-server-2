@@ -10,6 +10,7 @@ import {
   Sunflower,
   Farm,
   Maize,
+  Jowar,
 } from '@one-root/markhet-core';
 
 import { CropService } from './crop.service';
@@ -35,6 +36,7 @@ import { EventModule } from '../event/event.module';
       Sunflower,
       Farm,
       Maize,
+      Jowar,
     ]),
     EventModule,
     FarmModule,

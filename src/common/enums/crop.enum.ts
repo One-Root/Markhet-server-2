@@ -5,6 +5,7 @@ enum CropTable {
   DRY_COCONUT = 'dry_coconut',
   SUNFLOWER = 'sunflower',
   MAIZE = 'maize',
+  JOWAR = 'jowar',
 }
 
 // enums representing crop  varieties
@@ -72,6 +73,12 @@ enum MaizeVariety {
   HYBRID = 'Hybrid',
   POPCORN = 'Popcorn',
 }
+enum JowarVariety {
+  JOWAR_WHITE = 'Jowar White',
+  LOCAL = 'Local',
+  JOWAR_HYBRID = 'Jowar Hybrid',
+  JOWAR_SORGHUM = 'Jowar Sorghum',
+}
 
 enum CropStatusEnum {
   FARMER_REPORTED = 'Farmer Reported',
@@ -93,6 +100,7 @@ export {
   DryCoconutVariety,
   TenderCoconutVariety,
   SunflowerVariety,
+  JowarVariety,
   MaizeVariety,
   CropStatusEnum,
   CropReportedByEnum,

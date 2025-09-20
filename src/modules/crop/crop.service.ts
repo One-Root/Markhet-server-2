@@ -16,6 +16,7 @@ import {
   TenderCoconut,
   Sunflower,
   Maize,
+  Jowar,
 } from '@one-root/markhet-core';
 
 import { FarmService } from '../farm/farm.service';
@@ -34,6 +35,7 @@ import { UpdateTenderCoconutDto } from './dto/update-tender-coconut.dto';
 import { GetCropsQueryParamsDto } from './dto/get-crops-query-params.dto';
 import { CreateSunflowerDto } from './dto/create-sunflower.dto';
 import { UpdateSunflowerDto } from './dto/update-sunflower.dto';
+import { CreateJowarDto } from './dto/create-jowar.dto';
 
 import { Crop } from '@one-root/markhet-core';
 import { FileService } from '../file/file.service';
@@ -56,9 +58,11 @@ import {
   SunflowerVariety,
   MaizeVariety,
   CropReportedByEnum,
+  JowarVariety,
 } from '../../common/enums/crop.enum';
 import { CreateMaizeDto } from './dto/create-maize.dto';
 import { ca } from 'date-fns/locale';
+import { UpdateJowarDto } from './dto/update-jowar.dto';
 
 type CropWithImageUrl<T> = T & { imageUrl: string };
 
@@ -89,6 +93,9 @@ export class CropService {
 
     @InjectRepository(Maize)
     private readonly maizeRepoInjected: Repository<Maize>,
+
+    @InjectRepository(Jowar)
+    private readonly jowarRepoInjected: Repository<Jowar>,
 
     @InjectRepository(Farm)
     private readonly farmRepository: Repository<Farm>,
@@ -341,6 +348,22 @@ export class CropService {
     return this._addImageUrlToCrop(saved);
   }
 
+  async createJowar(
+    farmId: string,
+    dto: CreateJowarDto,
+  ): Promise<CropWithImageUrl<Jowar>> {
+    const farm = await this.farmService.findOne(farmId);
+    const repository = this.getRepository<Jowar>(CropName.JOWAR);
+    const crop = repository.create({
+      ...dto,
+      farm,
+      cropName: CropName.JOWAR,
+      measure: 'Quintals',
+    }) as Jowar;
+    const saved = await repository.save(crop);
+    return this._addImageUrlToCrop(saved);
+  }
+
   async updateTurmeric(id: string, dto: UpdateTurmericDto): Promise<Turmeric> {
     const repo = this.getRepository<Turmeric>(CropName.TURMERIC);
     const crop = await repo.findOne({ where: { id } });
@@ -419,6 +442,20 @@ export class CropService {
     }
     return repo.save(crop);
   }
+  async updateJowar(id: string, dto: UpdateJowarDto): Promise<Jowar> {
+    const repo = this.getRepository<Jowar>(CropName.JOWAR);
+    const crop = await repo.findOne({ where: { id } });
+    if (!crop) throw new NotFoundException(`maize with id ${id} not found`);
+    Object.assign(crop, dto);
+
+    crop.reportedBy = CropReportedByEnum.FARMER;
+    if (dto.isReadyToHarvest == true) {
+      crop.cropStatus = CropStatusEnum.FARMER_REPORTED;
+    } else if (dto.isReadyToHarvest == false) {
+      crop.cropStatus = CropStatusEnum.NOT_READY;
+    }
+    return repo.save(crop);
+  }
 
   isValidVariety(cropName: CropName, cropVariety: string): boolean {
     switch (cropName) {
@@ -434,6 +471,8 @@ export class CropService {
         return Object.values(SunflowerVariety).includes(cropVariety as any);
       case CropName.MAIZE:
         return Object.values(MaizeVariety).includes(cropVariety as any);
+      case CropName.JOWAR:
+        return Object.values(JowarVariety).includes(cropVariety as any);
       default:
         return false;
     }
@@ -453,6 +492,8 @@ export class CropService {
         return this.sunflowerRepoInjected as Repository<T>;
       case CropName.MAIZE:
         return this.maizeRepoInjected as Repository<T>;
+      case CropName.JOWAR:
+        return this.jowarRepoInjected as Repository<T>;
       default:
         throw new Error(`repository for crop '${cropName}' not found`);
     }
@@ -487,6 +528,9 @@ export class CropService {
         return this.dataSource.getRepository(Sunflower);
       case CropName.MAIZE:
         return this.dataSource.getRepository(Maize);
+      case CropName.JOWAR:
+        return this.dataSource.getRepository(Jowar);
+
       default:
         throw new Error(`No repository found for cropName: ${cropName}`);
     }
@@ -506,6 +550,8 @@ export class CropService {
         return Folders.CROPS_SUNFLOWER;
       case CropName.MAIZE:
         return Folders.CROPS_MAIZE;
+      case CropName.JOWAR:
+        return Folders.CROPS_JOWAR;
       default:
         throw new Error(`No folder mapping found for cropName: ${cropName}`);
     }
@@ -678,6 +724,14 @@ export class CropService {
       });
       if (sunflowers.some((crop) => !crop.images || crop.images.length === 0)) {
         cropTypesWithoutImages.push('Sunflower');
+      }
+
+      const jowars = await this.jowarRepoInjected.find({
+        where: { farm: { id: farmId } },
+        select: ['images'],
+      });
+      if (jowars.some((crop) => !crop.images || crop.images.length === 0)) {
+        cropTypesWithoutImages.push('Jowar');
       }
 
       return cropTypesWithoutImages;

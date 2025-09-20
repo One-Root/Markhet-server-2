@@ -5,6 +5,7 @@ enum CropName {
   DRY_COCONUT = 'Dry Coconut',
   SUNFLOWER = 'Sunflower',
   MAIZE = 'Maize',
+  JOWAR = 'Jowar',
 }
 
 enum CropStatusEnum {

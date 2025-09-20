@@ -5,6 +5,7 @@ enum Folders {
   CROPS_DRY_COCONUT = 'crops/dry_coconut',
   CROPS_SUNFLOWER = 'crops/sunflower',
   CROPS_MAIZE = 'crops/maize',
+  CROPS_JOWAR = 'crops/jowar',
   USER_PROFILES = 'user-profiles',
 }
 
