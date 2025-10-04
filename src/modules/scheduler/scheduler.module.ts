@@ -17,13 +17,10 @@ import { CalculateNextHarvestDateTask } from './tasks/calculate-next-harvest-dat
 import { HarvestHistoryModule } from '../harvest-history/harvest-history.module';
 import { sendPreRTHMessagesTask } from './tasks/send-preRTH-message.task';
 import { NotificationModule } from '../notification/notification.module';
-import { DeactivatePoTask } from './tasks/deactivate-po.task';
-import { PO } from '@one-root/markhet-core';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([PO]),
     HarvestHistoryModule,
     UserModule,
     CropModule,
@@ -39,7 +36,6 @@ import { PO } from '@one-root/markhet-core';
     ReservationReminderTask,
     CalculateEntityScoreTask,
     CalculateNextHarvestDateTask,
-    DeactivatePoTask,
   ],
   exports: [SchedulerService],
 })
