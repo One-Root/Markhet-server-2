@@ -20,13 +20,17 @@ export class DeactivatePoTask {
     this.logger.log('Starting daily PO deactivation (setting active=false)');
 
     try {
-      const result = await this.poRepository.update({ isActive: true }, { isActive: false });
+      const result = await this.poRepository.update(
+        { isActive: true },
+        { price_rate: null },
+      );
       const affected = (result as any)?.affected ?? 0;
       this.logger.log(`Deactivated ${affected} active POs.`);
     } catch (error) {
-      this.logger.error('Failed to deactivate active POs', error?.stack || error);
+      this.logger.error(
+        'Failed to deactivate active POs',
+        error?.stack || error,
+      );
     }
   }
 }
-
-
