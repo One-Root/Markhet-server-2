@@ -29,6 +29,7 @@ export class PoService {
       const cards = await this.pORepository.find({
         where: {
           cropName: cropName,
+          isActive: true,
         },
         relations: ['interests'],
       });
