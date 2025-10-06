@@ -23,7 +23,7 @@ export class CalculateNextHarvestDateTask {
     private readonly harvestHistoryService: HarvestHistoryService,
   ) {}
 
-  @Cron('50 23 * * *')
+  @Cron('4 0 23 * * *')
   async calculateNextHarvestDate() {
     this.logger.log('starting next harvest date calculation.');
 
