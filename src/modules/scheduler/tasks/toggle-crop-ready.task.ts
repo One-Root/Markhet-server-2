@@ -64,6 +64,7 @@ export class ToggleCropReadyTask {
           page,
           limit: this.BATCH_SIZE,
           nextHarvestDate: today,
+          isReadyToHarvest: false,
         })) as TenderCoconut[] | DryCoconut[];
 
         if (crops.length === 0) {
