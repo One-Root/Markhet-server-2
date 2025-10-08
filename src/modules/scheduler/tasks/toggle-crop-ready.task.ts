@@ -79,6 +79,13 @@ export class ToggleCropReadyTask {
         for (const crop of crops) {
           this.logger.log(`Processing crop ID: ${crop.id}`);
 
+          if (crop.isReadyToHarvest === true) {
+            this.logger.log(
+              `Skipping crop ${crop.id} - already Ready to Harvest`,
+            );
+            continue;
+          }
+
           try {
             await this.harvestHistoryService.create(user, {
               cropId: crop.id,
