@@ -156,26 +156,10 @@ export class CalculateEntityScoreTask {
           // Cap at 100
           score = Math.min(score, 100);
 
-          // Premium logic
-          let isPremium = false;
-          if (
-            cropName === CropName.TENDER_COCONUT &&
-            crop.isReadyToHarvest &&
-            crop.isVerified &&
-            crop.quantity > 500
-          ) {
-            isPremium = true;
-            this.logger.log(
-              `Crop ID ${crop.id} | Marked as PREMIUM (Tender Coconut, verified & >500 qty)`,
-            );
-          }
-
           // Final summary log for this crop
-          this.logger.log(
-            `Crop ID ${crop.id} | Final Score: ${score} | Premium: ${isPremium}`,
-          );
+          this.logger.log(`Crop ID ${crop.id} | Final Score: ${score} }`);
 
-          return { id: crop.id, score, cropName, isPremium };
+          return { id: crop.id, score, cropName };
         });
 
         await this.cropService.bulkUpdate(updates);
