@@ -160,6 +160,44 @@ export class CropService {
     }
   }
 
+  /**
+   * Helper method to mark crop card as REVIEW when isReadyToHarvest changes from true to false
+   */
+  private async _handleCropCardReview(
+    crop: CropType,
+    wasReadyToHarvest: boolean,
+    isNowReadyToHarvest: boolean,
+  ): Promise<void> {
+    // Check if isReadyToHarvest changed from true to false
+    if (wasReadyToHarvest && isNowReadyToHarvest === false) {
+      try {
+        const farmerId = crop.farm?.user?.id;
+        if (!farmerId) {
+          this.logger.warn(
+            `Cannot mark crop card as review for crop ${crop.id}: farmer ID not found`,
+          );
+          return;
+        }
+
+        // Mark crop card as REVIEW with FARMER_TURNED_OFF_APP reason
+        await this.cropCardService.markCropCardAsReview(
+          farmerId,
+          crop.id,
+          crop.cropName as CropName,
+        );
+        
+        this.logger.log(
+          `Crop card marked as REVIEW for crop ${crop.id} (${crop.cropName})`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to mark crop card as review for crop ${crop.id}: ${error.message}`,
+          error.stack,
+        );
+      }
+    }
+  }
+
   async findOne(
     cropName: CropName,
     id: string,
@@ -385,6 +423,13 @@ export class CropService {
       dto.isReadyToHarvest,
     );
 
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
     return saved;
   }
   async createMaize(
@@ -430,6 +475,13 @@ export class CropService {
       dto.isReadyToHarvest,
     );
 
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
     return saved;
   }
 
@@ -455,6 +507,13 @@ export class CropService {
 
     // Handle crop card creation if isReadyToHarvest changed from false to true
     await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
       saved,
       wasReadyToHarvest,
       dto.isReadyToHarvest,
@@ -495,6 +554,13 @@ export class CropService {
       dto.isReadyToHarvest,
     );
 
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
     return saved;
   }
 
@@ -528,6 +594,13 @@ export class CropService {
       dto.isReadyToHarvest,
     );
 
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
     return saved;
   }
 
@@ -554,6 +627,13 @@ export class CropService {
 
     // Handle crop card creation if isReadyToHarvest changed from false to true
     await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    // Handle crop card review if isReadyToHarvest changed from true to false
+    await this._handleCropCardReview(
       saved,
       wasReadyToHarvest,
       dto.isReadyToHarvest,

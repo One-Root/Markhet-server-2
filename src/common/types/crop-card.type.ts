@@ -1,4 +1,5 @@
 import { CropCardStatus } from '../enums/crop-card.enum';
+import { CropCardEndReason } from '../enums/crop-card-end-reason.enum';
 import { CropType } from './crop.type';
 
 export type CropCardData = {
@@ -19,4 +20,5 @@ export type CropCardUpdateData = {
   expectedHarvestDate?: Date;
   additionalNotes?: string;
   endedAt?: Date;
+  endReason?: CropCardEndReason;
 };

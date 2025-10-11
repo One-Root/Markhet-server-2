@@ -14,6 +14,7 @@ import {
   CropCardUpdateData,
 } from '../../common/types/crop-card.type';
 import { CropCardStatus } from 'src/common/enums/crop-card.enum';
+import { CropCardEndReason } from 'src/common/enums/crop-card-end-reason.enum';
 import { CropName } from 'src/common/enums/farm.enum';
 import { Identity } from 'src/common/enums/user.enum';
 import { CROP_IMAGE_MAP } from '../../common/constants/crop-images.constant';
@@ -90,6 +91,51 @@ export class CropCardService {
     const saved = await this.cropCardRepo.save(card);
     await this.cacheService.delete(`dashboard:${farmerId}`);
     return saved;
+  }
+
+  /**
+   * Marks a crop card as REVIEW when farmer turns off isReadyToHarvest
+   */
+  async markCropCardAsReview(
+    farmerId: string,
+    cropId: string,
+    cropName: CropName,
+  ): Promise<void> {
+    // Find active crop card for this crop
+    const existingCard = await this.cropCardRepo.findOne({
+      where: {
+        crop: { id: cropId },
+        status: CropCardStatus.STARTED,
+        farmer: { id: farmerId },
+      },
+    });
+
+    if (!existingCard) {
+      // No active crop card found, nothing to do
+      console.log(
+        `No active crop card found for crop ${cropId}, skipping review update`,
+      );
+      return;
+    }
+
+    console.log(
+      `Marking crop card ${existingCard.id} as REVIEW for crop ${cropId}`,
+    );
+
+    // Get fresh crop snapshot
+    const crop = await this.cropService.findOne(cropName, cropId);
+    const snapshot = JSON.parse(JSON.stringify(crop));
+    delete snapshot.farm;
+    delete snapshot.farmer;
+
+    // Update the card
+    existingCard.status = CropCardStatus.REVIEW;
+    existingCard.endReason = CropCardEndReason.FARMER_TURNED_OFF_APP;
+    existingCard.endedAt = new Date();
+    existingCard.cropSnapshot = snapshot;
+
+    await this.cropCardRepo.save(existingCard);
+    await this.cacheService.delete(`dashboard:${farmerId}`);
   }
 
   async expressInterest(
