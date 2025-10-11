@@ -6,6 +6,7 @@ import { SchedulerService } from './scheduler.service';
 
 import { UserModule } from '../user/user.module';
 import { CropModule } from '../crop/crop.module';
+import { CropCardModule } from '../crop-card/crop-card.module';
 import { EventModule } from '../event/event.module';
 import { ReservationModule } from '../reservation/reservation.module';
 import { PriorityConfigModule } from '../priority-config/priority-config.module';
@@ -24,6 +25,7 @@ import { NotificationModule } from '../notification/notification.module';
     HarvestHistoryModule,
     UserModule,
     CropModule,
+    CropCardModule,
     EventModule,
     ReservationModule,
     PriorityConfigModule,

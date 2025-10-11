@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateDateColumn, Repository } from 'typeorm';
@@ -42,6 +44,7 @@ export class CropCardService {
     @InjectRepository(CropCardInterest)
     private readonly interestRepo: Repository<CropCardInterest>,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => CropService))
     private readonly cropService: CropService,
     private readonly cacheService: CacheService,
   ) {}

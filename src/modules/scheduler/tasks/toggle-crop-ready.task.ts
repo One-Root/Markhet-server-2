@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { addDays } from 'date-fns';
 
 import { CropService } from '../../crop/crop.service';
+import { CropCardService } from '../../crop-card/crop-card.service';
 import { CropName } from '../../../common/enums/farm.enum';
 import { BulkUpdate } from '../../../common/interfaces/scheduler.interface';
 import { HarvestHistoryService } from 'src/modules/harvest-history/harvest-history.service';
@@ -16,6 +17,7 @@ import {
   Maize,
 } from '@one-root/markhet-core/dist';
 import { CropReportedByEnum, CropStatusEnum } from 'src/common/enums/crop.enum';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class ToggleCropReadyTask {
@@ -24,6 +26,7 @@ export class ToggleCropReadyTask {
 
   constructor(
     private readonly cropService: CropService,
+    private readonly cropCardService: CropCardService,
     private readonly harvestHistoryService: HarvestHistoryService,
     private readonly userService: UserService,
     private readonly chatraceService: ChatraceService,
@@ -138,10 +141,71 @@ export class ToggleCropReadyTask {
           `Marked ${updates.length} crops as ready (crop name: ${cropName}).`,
         );
 
+        // Create crop cards for crops that were just marked as ready
+        await this.createCropCardsForUpdatedCrops(crops, cropName);
+
         page++;
       }
     }
 
     this.logger.log('Toggle crop ready process completed.');
+  }
+
+  /**
+   * Creates crop cards for crops that were marked as ready to harvest
+   */
+  private async createCropCardsForUpdatedCrops(
+    crops: (TenderCoconut | DryCoconut | Sunflower | Maize)[],
+    cropName: CropName,
+  ): Promise<void> {
+    let successCount = 0;
+    let skipCount = 0;
+    let errorCount = 0;
+
+    for (const crop of crops) {
+      try {
+        const farmerId = crop.farm?.user?.id;
+        
+        if (!farmerId) {
+          this.logger.warn(
+            `Cannot create crop card for crop ${crop.id}: farmer ID not found`,
+          );
+          skipCount++;
+          continue;
+        }
+
+        await this.cropCardService.createCropCard(
+          farmerId,
+          crop.id,
+          cropName,
+        );
+        
+        successCount++;
+        this.logger.debug(
+          `Crop card created for crop ${crop.id} (${cropName})`,
+        );
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          // Crop card already exists - this is expected
+          this.logger.debug(
+            `Crop card already exists for crop ${crop.id}: ${error.message}`,
+          );
+          skipCount++;
+        } else {
+          // Unexpected error
+          this.logger.error(
+            `Failed to create crop card for crop ${crop.id}: ${error.message}`,
+            error.stack,
+          );
+          errorCount++;
+        }
+      }
+    }
+
+    if (successCount > 0 || skipCount > 0 || errorCount > 0) {
+      this.logger.log(
+        `Crop card creation summary for ${cropName}: ${successCount} created, ${skipCount} skipped, ${errorCount} errors`,
+      );
+    }
   }
 }
