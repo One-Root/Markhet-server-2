@@ -4,6 +4,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -20,6 +22,7 @@ import {
 
 import { FarmService } from '../farm/farm.service';
 import { CacheService } from '../cache/cache.service';
+import { CropCardService } from '../crop-card/crop-card.service';
 
 import { CropName } from '../../common/enums/farm.enum';
 
@@ -100,6 +103,8 @@ export class CropService {
     private readonly fileService: FileService,
     private readonly dataSource: DataSource,
     @InjectRepository(Crop) private readonly cropRepo: Repository<Crop>,
+    @Inject(forwardRef(() => CropCardService))
+    private readonly cropCardService: CropCardService,
   ) {}
 
   private _addImageUrlToCrop<T extends CropType>(crop: T): CropWithImageUrl<T> {
@@ -108,6 +113,51 @@ export class CropService {
       ...crop,
       imageUrl: CROP_IMAGE_MAP[crop.cropName] || null,
     };
+  }
+
+  /**
+   * Helper method to create a crop card when isReadyToHarvest changes from false to true
+   */
+  private async _handleCropCardCreation(
+    crop: CropType,
+    wasReadyToHarvest: boolean,
+    isNowReadyToHarvest: boolean,
+  ): Promise<void> {
+    // Check if isReadyToHarvest changed from false to true
+    if (!wasReadyToHarvest && isNowReadyToHarvest === true) {
+      try {
+        const farmerId = crop.farm?.user?.id;
+        if (!farmerId) {
+          this.logger.warn(
+            `Cannot create crop card for crop ${crop.id}: farmer ID not found`,
+          );
+          return;
+        }
+
+        // Create crop card if it doesn't already exist with status STARTED
+        await this.cropCardService.createCropCard(
+          farmerId,
+          crop.id,
+          crop.cropName as CropName,
+        );
+        
+        this.logger.log(
+          `Crop card created for crop ${crop.id} (${crop.cropName})`,
+        );
+      } catch (error) {
+        // If crop card already exists, log it but don't fail the update
+        if (error instanceof BadRequestException) {
+          this.logger.log(
+            `Crop card already exists for crop ${crop.id}: ${error.message}`,
+          );
+        } else {
+          this.logger.error(
+            `Failed to create crop card for crop ${crop.id}: ${error.message}`,
+            error.stack,
+          );
+        }
+      }
+    }
   }
 
   async findOne(
@@ -316,6 +366,8 @@ export class CropService {
     if (!crop)
       throw new NotFoundException(`tender coconut with id ${id} not found`);
 
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
@@ -323,7 +375,17 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repository.save(crop);
+
+    const saved = await repository.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
   async createMaize(
     farmId: string,
@@ -343,8 +405,14 @@ export class CropService {
 
   async updateTurmeric(id: string, dto: UpdateTurmericDto): Promise<Turmeric> {
     const repo = this.getRepository<Turmeric>(CropName.TURMERIC);
-    const crop = await repo.findOne({ where: { id } });
+    const crop = await repo.findOne({
+      where: { id },
+      relations: ['farm', 'farm.user'],
+    });
     if (!crop) throw new NotFoundException(`turmeric with id ${id} not found`);
+
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
@@ -352,13 +420,29 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repo.save(crop);
+
+    const saved = await repo.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
 
   async updateBanana(id: string, dto: UpdateBananaDto): Promise<Banana> {
     const repo = this.getRepository<Banana>(CropName.BANANA);
-    const crop = await repo.findOne({ where: { id } });
+    const crop = await repo.findOne({
+      where: { id },
+      relations: ['farm', 'farm.user'],
+    });
     if (!crop) throw new NotFoundException(`banana with id ${id} not found`);
+
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
@@ -366,7 +450,17 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repo.save(crop);
+
+    const saved = await repo.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
 
   async updateDryCoconut(
@@ -374,9 +468,15 @@ export class CropService {
     dto: UpdateDryCoconutDto,
   ): Promise<DryCoconut> {
     const repo = this.getRepository<DryCoconut>(CropName.DRY_COCONUT);
-    const crop = await repo.findOne({ where: { id } });
+    const crop = await repo.findOne({
+      where: { id },
+      relations: ['farm', 'farm.user'],
+    });
     if (!crop)
       throw new NotFoundException(`dry coconut with id ${id} not found`);
+
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
     crop.measure = crop.isHarvested ? 'nuts' : 'trees';
     crop.reportedBy = CropReportedByEnum.FARMER;
@@ -385,7 +485,17 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repo.save(crop);
+
+    const saved = await repo.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
 
   async updateSunflower(
@@ -393,8 +503,14 @@ export class CropService {
     dto: UpdateSunflowerDto,
   ): Promise<Sunflower> {
     const repo = this.getRepository<Sunflower>(CropName.SUNFLOWER);
-    const crop = await repo.findOne({ where: { id } });
+    const crop = await repo.findOne({
+      where: { id },
+      relations: ['farm', 'farm.user'],
+    });
     if (!crop) throw new NotFoundException(`sunflower with id ${id} not found`);
+
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
     crop.reportedBy = CropReportedByEnum.FARMER;
     if (dto.isReadyToHarvest == true) {
@@ -402,13 +518,29 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repo.save(crop);
+
+    const saved = await repo.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
 
   async updateMaize(id: string, dto: UpdateMaizeDto): Promise<Maize> {
     const repo = this.getRepository<Maize>(CropName.MAIZE);
-    const crop = await repo.findOne({ where: { id } });
+    const crop = await repo.findOne({
+      where: { id },
+      relations: ['farm', 'farm.user'],
+    });
     if (!crop) throw new NotFoundException(`maize with id ${id} not found`);
+
+    const wasReadyToHarvest = crop.isReadyToHarvest;
+
     Object.assign(crop, dto);
 
     crop.reportedBy = CropReportedByEnum.FARMER;
@@ -417,7 +549,17 @@ export class CropService {
     } else if (dto.isReadyToHarvest == false) {
       crop.cropStatus = CropStatusEnum.NOT_READY;
     }
-    return repo.save(crop);
+
+    const saved = await repo.save(crop);
+
+    // Handle crop card creation if isReadyToHarvest changed from false to true
+    await this._handleCropCardCreation(
+      saved,
+      wasReadyToHarvest,
+      dto.isReadyToHarvest,
+    );
+
+    return saved;
   }
 
   isValidVariety(cropName: CropName, cropVariety: string): boolean {

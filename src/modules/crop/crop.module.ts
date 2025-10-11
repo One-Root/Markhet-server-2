@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import {
@@ -19,6 +19,7 @@ import { FarmModule } from '../farm/farm.module';
 import { CacheModule } from '../cache/cache.module';
 import { SessionModule } from '../session/session.module';
 import { NotificationModule } from '../notification/notification.module';
+import { CropCardModule } from '../crop-card/crop-card.module';
 
 import { CropEntitySubscriber } from './subscribers/crop.subscriber';
 import { FileService } from '../file/file.service';
@@ -41,6 +42,7 @@ import { EventModule } from '../event/event.module';
     CacheModule,
     SessionModule,
     NotificationModule,
+    forwardRef(() => CropCardModule),
   ],
   controllers: [CropController],
   providers: [CropService, CropEntitySubscriber, FileService],

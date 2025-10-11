@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CropCardController } from './crop-card.controller';
@@ -17,7 +17,7 @@ import { CropCardInterest } from '@one-root/markhet-core';
 @Module({
   imports: [
     TypeOrmModule.forFeature([CropCard, User, CropCardInterest]),
-    CropModule,
+    forwardRef(() => CropModule),
     CacheModule,
     SessionModule,
     UserModule,
