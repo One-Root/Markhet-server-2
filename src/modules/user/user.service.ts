@@ -198,4 +198,34 @@ export class UserService {
 
     await Promise.all(promises);
   }
+
+  async findUsersWithoutCoordinates(params: {
+    page: number;
+    limit: number;
+  }): Promise<User[]> {
+    const { page = 1, limit = 10 } = params;
+    const skip = (page - 1) * limit;
+
+    // Use raw query to properly check for null PostGIS coordinates
+    return this.userRepository.query(`
+      SELECT id, village, taluk, district, coordinates
+      FROM users 
+      WHERE "identity" = $1 
+        AND coordinates IS NULL
+      ORDER BY "createdAt" DESC
+      LIMIT $2 OFFSET $3
+    `, [Identity.BUYER, limit, skip]);
+  }
+
+  async updateUserCoordinates(
+    userId: string,
+    coordinates: [number, number],
+  ): Promise<void> {
+    await this.userRepository.query(
+      `UPDATE "users" 
+       SET "coordinates" = ST_SetSRID(ST_MakePoint($1, $2), 4326)
+       WHERE "id" = $3`,
+      [coordinates[0], coordinates[1], userId],
+    );
+  }
 }

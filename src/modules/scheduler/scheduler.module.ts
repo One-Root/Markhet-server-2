@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
+import { HttpModule } from '@nestjs/axios';
 
 import { SchedulerService } from './scheduler.service';
 
@@ -18,10 +19,12 @@ import { CalculateNextHarvestDateTask } from './tasks/calculate-next-harvest-dat
 import { HarvestHistoryModule } from '../harvest-history/harvest-history.module';
 import { sendPreRTHMessagesTask } from './tasks/send-preRTH-message.task';
 import { NotificationModule } from '../notification/notification.module';
+import { UpdateUserCoordinatesTask } from './tasks/update-user-coordinates.task';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    HttpModule,
     HarvestHistoryModule,
     UserModule,
     CropModule,
@@ -38,6 +41,7 @@ import { NotificationModule } from '../notification/notification.module';
     ReservationReminderTask,
     CalculateEntityScoreTask,
     CalculateNextHarvestDateTask,
+    UpdateUserCoordinatesTask,
   ],
   exports: [SchedulerService],
 })
