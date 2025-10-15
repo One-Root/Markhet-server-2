@@ -31,7 +31,7 @@ export class PoService {
           cropName: cropName,
           isActive: true,
         },
-        relations: ['interests'],
+        relations: ['interests','interests.user'],
       });
 
       if (!cards || cards.length === 0) {
