@@ -20,10 +20,13 @@ import { HarvestHistoryModule } from '../harvest-history/harvest-history.module'
 import { sendPreRTHMessagesTask } from './tasks/send-preRTH-message.task';
 import { NotificationModule } from '../notification/notification.module';
 import { UpdateUserCoordinatesTask } from './tasks/update-user-coordinates.task';
+import { ManagePOExpiryTask } from './tasks/manage-po-expiry.task';
+import { PO } from '@one-root/markhet-core';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    TypeOrmModule.forFeature([PO]),
     HttpModule,
     HarvestHistoryModule,
     UserModule,
@@ -42,6 +45,7 @@ import { UpdateUserCoordinatesTask } from './tasks/update-user-coordinates.task'
     CalculateEntityScoreTask,
     CalculateNextHarvestDateTask,
     UpdateUserCoordinatesTask,
+    ManagePOExpiryTask,
   ],
   exports: [SchedulerService],
 })
