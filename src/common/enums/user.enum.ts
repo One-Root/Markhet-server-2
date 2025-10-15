@@ -19,4 +19,9 @@ enum PaymentMode {
   BANK_TRANSFER = 'BANK_TRANSFER',
 }
 
-export { Language, Identity, PaymentMode };
+enum UserPlanEnum {
+  FREE = "FREE",
+  PREMIUM = "PREMIUM"
+}
+
+export { Language, Identity, PaymentMode, UserPlanEnum };

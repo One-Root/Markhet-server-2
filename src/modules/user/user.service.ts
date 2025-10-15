@@ -81,6 +81,9 @@ export class UserService {
       take: limit,
       where: conditions,
       relations: ['dailyPrices'],
+      order: {
+        score: 'DESC' as const,
+      },
     };
 
     const users = await this.userRepository.find(options);

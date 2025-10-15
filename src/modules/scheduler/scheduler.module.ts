@@ -16,6 +16,7 @@ import { ToggleCropReadyTask } from './tasks/toggle-crop-ready.task';
 import { ReservationReminderTask } from './tasks/reservation-reminder.task';
 import { CalculateEntityScoreTask } from './tasks/calculate-entity-score.task';
 import { CalculateNextHarvestDateTask } from './tasks/calculate-next-harvest-date.task';
+import { CalculateBuyerScoreTask } from './tasks/calculate-buyer-score.task';
 import { HarvestHistoryModule } from '../harvest-history/harvest-history.module';
 import { sendPreRTHMessagesTask } from './tasks/send-preRTH-message.task';
 import { NotificationModule } from '../notification/notification.module';
@@ -44,6 +45,7 @@ import { PO } from '@one-root/markhet-core';
     ReservationReminderTask,
     CalculateEntityScoreTask,
     CalculateNextHarvestDateTask,
+    CalculateBuyerScoreTask,
     UpdateUserCoordinatesTask,
     ManagePOExpiryTask,
   ],
