@@ -24,10 +24,6 @@ export class PoService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  private delay(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
   async getAll(cropName: CropName): Promise<PO[]> {
     try {
       const cards = await this.pORepository.find({
