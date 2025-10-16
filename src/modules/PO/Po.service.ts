@@ -151,6 +151,15 @@ export class PoService {
         return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
       };
 
+      // Helper function to sanitize field values - remove newlines, tabs, and reduce multiple spaces
+      const sanitizeValue = (value: string): string => {
+        if (!value) return '';
+        return value
+          .replace(/[\n\r\t]/g, ' ') // Replace newlines and tabs with space
+          .replace(/\s{4,}/g, ' ') // Replace 4+ consecutive spaces with single space
+          .trim(); // Remove leading/trailing whitespace
+      };
+
       // Extract first 5 digits from PO ID
       const shortPOId = po.id.substring(0, 5);
 
@@ -160,7 +169,7 @@ export class PoService {
         {
           action: 'set_field_value',
           field_name: 'buyer_name',
-          value: buyer.name,
+          value: sanitizeValue(buyer.name),
         },
         {
           action: 'set_field_value',
@@ -170,38 +179,39 @@ export class PoService {
         {
           action: 'set_field_value',
           field_name: 'Company_name',
-          value: po.companyName || '',
+          value: sanitizeValue(po.companyName || ''),
         },
         {
           action: 'set_field_value',
           field_name: 'Crop_Name',
-          value: po.cropName || '',
+          value: sanitizeValue(po.cropName || ''),
         },
         {
           action: 'set_field_value',
           field_name: 'PO_quantity',
-          value: po.minQuantity?.toString() || '',
+          value: sanitizeValue(po.minQuantity?.toString() || ''),
         },
         {
           action: 'set_field_value',
           field_name: 'weight_unit',
-          value: po.measure || '',
+          value: sanitizeValue(po.measure || ''),
         },
         {
           action: 'set_field_value',
           field_name: 'Accepted_price',
-          value: formattedPrice,
+          value: sanitizeValue(formattedPrice),
         },
         {
           action: 'set_field_value',
           field_name: 'specs',
-          value: po.specification_en || '',
+          value: sanitizeValue(po.specification_en || ''),
         },
         {
           action: 'set_field_value',
           field_name: 'Delivery_location',
-          value:
+          value: sanitizeValue(
             `${po.village || ''}, ${po.taluk || ''}, ${po.district || ''}`.trim(),
+          ),
         },
         {
           action: 'set_field_value',
@@ -225,9 +235,10 @@ export class PoService {
         },
       ];
 
-      // console.log('=== SENDING TO CHATRACE ===');
-      // console.log('Buyer Name Value:', buyer.name);
-      // console.log('All Fields:', JSON.stringify(fields, null, 2));
+      // Remove the pretty-printing (null, 2) - send compact JSON
+      this.logger.log(
+        `WhatsApp message sent for PO ${po.id} (buyer + support)`,
+      );
 
       await this.sendChatRaceMessage(buyerPhone, fields, 1760076045533);
 
@@ -254,10 +265,6 @@ export class PoService {
     flowId: number,
   ) {
     const updatedActions = [
-      {
-        action: 'send_text',
-        text: 'New Purchase Order Interest',
-      },
       ...actions,
       { action: 'send_flow', flow_id: flowId },
     ];
@@ -278,8 +285,7 @@ export class PoService {
 
       const result = await response.json();
       this.logger.log(
-        `ChatRace response for ${phone}:`,
-        JSON.stringify(result),
+        `ChatRace response for ${phone}: ${JSON.stringify(result)}`,
       );
     } catch (error) {
       this.logger.error(`Error sending ChatRace message:`, error);
