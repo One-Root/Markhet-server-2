@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-
 import { UserService } from '../../user/user.service';
-
 import { Identity, UserPlanEnum } from '../../../common/enums/user.enum';
 import { BulkUpdate } from '../../../common/interfaces/scheduler.interface';
 
@@ -15,13 +13,14 @@ export class CalculateBuyerScoreTask {
 
   @Cron('0 */2 * * *') // Run every 2 hours
   async calculateBuyerScore() {
-    this.logger.log('starting buyer score calculation.');
+    this.logger.log('Starting buyer score calculation.');
 
     let page = 1;
+    let totalProcessed = 0;
 
     while (true) {
       this.logger.log(
-        `fetching buyers, page: ${page}, batch size: ${this.BATCH_SIZE}`,
+        `Fetching buyers (page: ${page}, size: ${this.BATCH_SIZE})`,
       );
 
       const buyers = await this.userService.findAll({
@@ -31,74 +30,54 @@ export class CalculateBuyerScoreTask {
       });
 
       if (buyers.length === 0) {
-        this.logger.log('no more buyers to process');
+        this.logger.log('No more buyers to process.');
         break;
       }
 
       const updates: BulkUpdate[] = buyers.map((buyer) => {
         let score = 0;
 
-        this.logger.log(`Buyer ID ${buyer.id} | Starting score calculation`);
-
-        // Check if user has PREMIUM plan
+        // PREMIUM plan
         if (buyer.userPlan === UserPlanEnum.PREMIUM) {
-          score += 40;
-          this.logger.log(
-            `Buyer ID ${buyer.id} | PREMIUM plan → +40 (score now: ${score})`,
-          );
+          score += 50;
         }
 
-        // Check if user was created within the last 7 days
+        // Account created within last 7 days
         if (buyer.createdAt) {
-          const now = new Date();
-          const createdAt = new Date(buyer.createdAt);
-          const daysDifference = Math.floor(
-            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
-          );
-
-          if (daysDifference <= 7) {
-            score += 40;
-            this.logger.log(
-              `Buyer ID ${buyer.id} | Created ${daysDifference} day(s) ago → +40 (score now: ${score})`,
-            );
+          const daysSinceCreation =
+            (Date.now() - new Date(buyer.createdAt).getTime()) /
+            (1000 * 60 * 60 * 24);
+          if (daysSinceCreation <= 7) {
+            score += 20;
           }
         }
 
-        // Check if user was last active within the last 7 days
+        // Last active within last 7 days
         if (buyer.lastActiveAt) {
-          const now = new Date();
-          const lastActiveAt = new Date(buyer.lastActiveAt);
-          const daysDifference = Math.floor(
-            (now.getTime() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24),
-          );
-
-          if (daysDifference <= 7) {
-            score += 20;
-            this.logger.log(
-              `Buyer ID ${buyer.id} | Last active ${daysDifference} day(s) ago → +20 (score now: ${score})`,
-            );
+          const daysSinceActive =
+            (Date.now() - new Date(buyer.lastActiveAt).getTime()) /
+            (1000 * 60 * 60 * 24);
+          if (daysSinceActive <= 7) {
+            score += 30;
           }
         }
 
         // Cap at 100
-        score = Math.min(score, 100);
-
-        // Final summary log for this buyer
-        this.logger.log(`Buyer ID ${buyer.id} | Final Score: ${score}`);
-
-        return { id: buyer.id, score };
+        return { id: buyer.id, score: Math.min(score, 100) };
       });
 
       await this.userService.bulkUpdate(updates);
+      totalProcessed += buyers.length;
 
       this.logger.log(
-        `processed and updated scores for ${buyers.length} buyers.`,
+        `Updated scores for ${buyers.length} buyers (total processed: ${totalProcessed}).`,
       );
 
       page++;
     }
 
-    this.logger.log('buyer score calculation completed.');
+    this.logger.log(
+      `Buyer score calculation completed. Total buyers processed: ${totalProcessed}.`,
+    );
   }
 }
-
