@@ -6,10 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PO, POInterest, User } from '@one-root/markhet-core';
-import { Raw, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AddPOInterestDto } from './dto/add-po.dto';
 import { CropName } from 'src/common/enums/farm.enum';
-import { Identity } from 'src/common/enums/user.enum';
 
 @Injectable()
 export class PoService {
@@ -135,7 +134,6 @@ export class PoService {
         ? buyer.mobileNumber
         : `+91${buyer.mobileNumber}`;
 
-      // Format date as DD/MM/YYYY
       const formatDateToDDMMYYYY = (date: Date | string | null): string => {
         if (!date) return '';
         const d = new Date(date);
@@ -145,10 +143,9 @@ export class PoService {
         return `${day}/${month}/${year}`;
       };
 
-      // Format timestamp to Indian Standard Time (IST) as DD/MM/YYYY HH:MM:SS
       const formatTimestampIST = (): string => {
         const now = new Date();
-        const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); // UTC+5:30
+        const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
         const day = String(istTime.getUTCDate()).padStart(2, '0');
         const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
         const year = istTime.getUTCFullYear();
@@ -161,7 +158,6 @@ export class PoService {
       // Extract first 5 digits from PO ID
       const shortPOId = po.id.substring(0, 5);
 
-      // Format price: just number (e.g., "20")
       const formattedPrice = po.price_rate?.toString() || '0';
 
       const fields = [
@@ -199,11 +195,6 @@ export class PoService {
           action: 'set_field_value',
           field_name: 'Accepted_price',
           value: formattedPrice,
-        },
-        {
-          action: 'set_field_value',
-          field_name: 'weight_unit',
-          value: po.measure || '',
         },
         {
           action: 'set_field_value',
