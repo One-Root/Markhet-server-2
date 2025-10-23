@@ -80,42 +80,19 @@ export class CallController {
   @Post('answer')
   @HttpCode(200)
   async answer(@Body() answerCallDto: AnswerCallDto) {
-    try {
-      return await this.callService.answerCall(answerCallDto);
-    } catch (error) {
-      console.error('Error in answer call endpoint:', error);
-      
-      // Return valid XML on error
-      const Plivo = require('plivo');
-      const response = Plivo.Response();
-      response.addSpeak('An error occurred. Please try again later.');
-      response.addHangup();
-      return response.toXML();
-    }
+    return await this.callService.answerCall(answerCallDto);
   }
 
   @Post('answer-callback')
   @HttpCode(200)
   async answerCallback(@Body() answerCallbackDto: AnswerCallbackDto) {
-    try {
-      return await this.callService.answerCallback(answerCallbackDto);
-    } catch (error) {
-      console.error('Error in answer callback endpoint:', error);
-      // Acknowledge webhook received
-      return { status: 'error', message: error.message };
-    }
+    return await this.callService.answerCallback(answerCallbackDto);
   }
 
   @Post('end')
   @HttpCode(200)
   async end(@Body() concludeCallDto: ConcludeCallDto) {
-    try {
-      return await this.callService.concludeCall(concludeCallDto);
-    } catch (error) {
-      console.error('Error in conclude call endpoint:', error, concludeCallDto);
-      // Don't throw - acknowledge webhook received
-      return { status: 'error', message: error.message };
-    }
+    return await this.callService.concludeCall(concludeCallDto);
   }
 
   @Post('transfer')
@@ -134,41 +111,14 @@ export class CallController {
 
   @Post('dial-action')
   @HttpCode(200)
-  async connectAgent(@Body() dialActionDto: DialActionDto) {
-    try {
-      const result = await this.callService.dialAction(dialActionDto);
-      
-      if (!result) {
-        // Fallback: should never happen, but ensure we return valid XML
-        const Plivo = require('plivo');
-        const response = Plivo.Response();
-        response.addHangup();
-        return response.toXML();
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Error in dial-action endpoint:', error);
-      
-      // Always return valid XML even on error
-      const Plivo = require('plivo');
-      const response = Plivo.Response();
-      response.addSpeak('An error occurred. Please try again.');
-      response.addHangup();
-      return response.toXML();
-    }
+  async connectAgent(@Body() dialActionDto: any) {
+    return await this.callService.dialAction(dialActionDto);
   }
 
   @Post('dial-action-callback')
   @HttpCode(200)
-  async dialActionCallback(@Body() answerCallbackDto: AnswerCallbackDto) {
-    try {
-      return await this.callService.dialActionCallback(answerCallbackDto);
-    } catch (error) {
-      console.error('Error in dial-action-callback endpoint:', error);
-      // Acknowledge webhook received even on error
-      return { status: 'error', message: error.message };
-    }
+  async dialActionCallback(@Body() answerCallbackDto: any) {
+    return await this.callService.dialActionCallback(answerCallbackDto);
   }
 
   @Post('caller-tune/:type')

@@ -189,7 +189,7 @@ export class UserService {
     return this.userRepository.findOne({
       where: {
         identity: Identity.SUPPORT,
-        mobileNumber: '+917899537755',
+        mobileNumber: '+919606031885',
       },
     });
   }
@@ -210,14 +210,17 @@ export class UserService {
     const skip = (page - 1) * limit;
 
     // Use raw query to properly check for null PostGIS coordinates
-    return this.userRepository.query(`
+    return this.userRepository.query(
+      `
       SELECT id, village, taluk, district, coordinates
       FROM users 
       WHERE "identity" = $1 
         AND coordinates IS NULL
       ORDER BY "createdAt" DESC
       LIMIT $2 OFFSET $3
-    `, [Identity.BUYER, limit, skip]);
+    `,
+      [Identity.BUYER, limit, skip],
+    );
   }
 
   async updateUserCoordinates(

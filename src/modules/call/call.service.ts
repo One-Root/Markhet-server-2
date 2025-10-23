@@ -42,7 +42,6 @@ import { EventQueue, NotificationEvent } from '../../common/enums/event.enum';
 @Injectable()
 export class CallService {
   private client: Plivo.Client;
-  private readonly logger = new Logger(CallService.name);
 
   constructor(
     @InjectRepository(Call)
@@ -66,7 +65,6 @@ export class CallService {
     }
 
     this.client = new Plivo.Client(id, token);
-    this.logger.log('CallService initialized with Plivo client');
   }
 
   async find(userId: string, params: GetCallsQueryParamsDto): Promise<Call[]> {
@@ -249,14 +247,11 @@ export class CallService {
       RouteType: routeType,
     } = answerCallDto;
 
-    this.logger.log(`Answer call received: ${callUUID} from ${fromNumber} to ${toNumber}`);
-
     // get the user by mobile number
     const user = await this.userService.findByMobileNumber(fromNumber);
 
     // if there is no user
     if (!user) {
-      this.logger.warn(`User not found for mobile number: ${fromNumber}`);
       const response = Plivo.Response();
 
       // play 'user not found' tune
@@ -266,15 +261,10 @@ export class CallService {
     }
 
     // get the most recent call for the user
-    let call: any;
-    let match: string;
+    const { call, match } = await this.getMostRecentCall(user.id);
 
-    try {
-      const result = await this.getMostRecentCall(user.id);
-      call = result.call;
-      match = result.match;
-    } catch (error) {
-      this.logger.warn(`No recent call found for user ${user.id}: ${error.message}`);
+    // if there is no call
+    if (!call) {
       const response = Plivo.Response();
 
       // play 'call not found' tune
@@ -348,11 +338,7 @@ export class CallService {
   async answerCallback(answerCallbackDto: AnswerCallbackDto) {
     const { CallUUID: callUUID, CallStatus: callStatus } = answerCallbackDto;
 
-    this.logger.log(`Answer callback: ${callUUID}, status: ${callStatus}`);
-
     const call = await this.findByCallUUID(callUUID);
-
-    this.logger.log(`Updating call ${call.id} status: ${call.callStatus} → ${callStatus}`);
 
     await this.update(call.id, { callStatus });
   }
@@ -406,7 +392,7 @@ export class CallService {
     });
   }
 
-  async concludeCall(concludeCallDto: ConcludeCallDto) {
+  async concludeCall(concludeCallDto: any) {
     const {
       CallUUID: callUUID,
       Duration: duration,
@@ -418,12 +404,8 @@ export class CallService {
       EndTime: endStamp,
     } = concludeCallDto;
 
-    this.logger.log(`Conclude call webhook: ${callUUID}, status: ${callStatus}, duration: ${duration}s`);
-
     // get the call record
     const call = await this.findByCallUUID(callUUID);
-
-    this.logger.log(`Call ${callUUID} transitioning: ${call.callStatus} → ${callStatus}`);
 
     // update the call record
     await this.update(call.id, {
@@ -444,17 +426,8 @@ export class CallService {
         CallStatus.TIMEOUT,
         CallStatus.NO_ANSWER,
       ].includes(callStatus)
-    ) {
-      this.logger.log(`Skipping WhatsApp notification for status: ${callStatus}`);
+    )
       return;
-    }
-
-    // Check if crop exists before sending notification
-    if (!call.crop) {
-      this.logger.warn(`Call ${callUUID} has no associated crop, skipping WhatsApp notification`);
-      return;
-    }
-
     // select template based on call status
     const template =
       callStatus === CallStatus.COMPLETED
@@ -542,8 +515,6 @@ export class CallService {
     const { CallUUID: callUUID, RecordUrl: recordingUrl } =
       updateCallRecordingDto;
 
-    this.logger.log(`Recording ready for call: ${callUUID}, URL: ${recordingUrl}`);
-
     // get the call record
     const call = await this.findByCallUUID(callUUID);
 
@@ -612,33 +583,27 @@ export class CallService {
     return response.toXML();
   }
 
-  async dialAction(dialActionDto: DialActionDto) {
+  async dialAction(dialActionDto: any) {
     const {
       CallUUID: callUUID,
       DialStatus: dialStatus,
       To: toNumber,
     } = dialActionDto;
 
-    this.logger.log(`Dial action received: ${callUUID}, status: ${dialStatus}`);
-
     // get the call record
     const call = await this.findByCallUUID(callUUID);
-
-    const response = Plivo.Response();
 
     if (
       [CallStatus.BUSY, CallStatus.FAILED, CallStatus.NO_ANSWER].includes(
         dialStatus,
       )
     ) {
-      this.logger.warn(`Dial failed for call ${callUUID}: ${dialStatus}`);
-
       // get an available agent
       const agent = await this.userService.getAvailableAgent();
 
       if (agent) {
-        this.logger.log(`Connecting to agent: ${agent.mobileNumber}`);
         await this.update(call.id, { agent });
+        const response = Plivo.Response();
 
         const dial = response.addDial({
           // timeout for the call
@@ -658,38 +623,15 @@ export class CallService {
         dial.addNumber(agent.mobileNumber);
 
         return response.toXML();
-      } else {
-        // No agent available - play message and hang up properly
-        this.logger.warn(`No agent available for call ${callUUID}`);
-
-        response.addSpeak('Sorry, all agents are currently busy. Please try again later.');
-
-        // Update status to failed since we can't connect
-        await this.update(call.id, {
-          callStatus: CallStatus.FAILED,
-          hangupCause: 'no_agent_available',
-          endStamp: new Date().toISOString(),
-        });
-
-        response.addHangup();
-        return response.toXML();
       }
     }
-
-    // For successful dials, return empty XML to let call continue
-    this.logger.log(`Dial successful for call ${callUUID}`);
-    return response.toXML();
   }
 
   async dialActionCallback(answerCallbackDto: AnswerCallbackDto) {
     const { CallUUID: callUUID, CallStatus: callStatus } = answerCallbackDto;
 
-    this.logger.log(`Dial action callback: ${callUUID}, status: ${callStatus}`);
-
     // get the call record
     const call = await this.findByCallUUID(callUUID);
-
-    this.logger.log(`Updating call ${call.id} status: ${call.callStatus} → ${callStatus}`);
 
     // update the call record
     await this.update(call.id, { callStatus });
