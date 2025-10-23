@@ -246,6 +246,7 @@ export class PoService {
         '+918309508690',
         '+917338033341',
         '+918792006444',
+        '+919740635553',
       ];
       for (const supportPhone of supportNumbers) {
         await this.sendChatRaceMessage(supportPhone, fields, 1760076693089);
