@@ -102,7 +102,6 @@ export class ToggleCropReadyTask {
           }
 
           try {
-            // Base message payload
             const messagePayload: any = {
               number: crop.farm.user.mobileNumber,
               name: crop.farm.user.name,
@@ -110,16 +109,17 @@ export class ToggleCropReadyTask {
               cropName: cropDisplayNames[cropName],
               flowId: 1753170223469,
             };
-
+ 
             // Add noOfTrees only for coconut crops
             if (
               cropName === CropName.TENDER_COCONUT ||
               cropName === CropName.DRY_COCONUT
             ) {
               messagePayload.noOfTrees = crop.numberOfTrees;
+              await this.chatraceService.sendRTHMessage(messagePayload);
             }
 
-            await this.chatraceService.sendRTHMessage(messagePayload);
+            
           } catch (error) {
             this.logger.error(
               `Failed to send RTH message for crop ${crop.id}: ${error.message}`,

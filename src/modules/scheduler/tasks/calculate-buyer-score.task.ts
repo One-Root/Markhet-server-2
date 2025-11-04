@@ -39,7 +39,7 @@ export class CalculateBuyerScoreTask {
 
         // PREMIUM plan
         if (buyer.userPlan === UserPlanEnum.PREMIUM) {
-          score += 50;
+          score += 60;
         }
 
         // Account created within last 7 days
@@ -58,7 +58,7 @@ export class CalculateBuyerScoreTask {
             (Date.now() - new Date(buyer.lastActiveAt).getTime()) /
             (1000 * 60 * 60 * 24);
           if (daysSinceActive <= 7) {
-            score += 30;
+            score += 10;
           }
         }
 
