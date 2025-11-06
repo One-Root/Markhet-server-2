@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PO } from '@one-root/markhet-core';
+import { PO, POInterest } from '@one-root/markhet-core';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,6 +11,8 @@ export class ManagePOExpiryTask {
   constructor(
     @InjectRepository(PO)
     private readonly pORepository: Repository<PO>,
+    @InjectRepository(POInterest)
+    private readonly poInterestRepository: Repository<POInterest>,
   ) {}
 
   @Cron('0 22 * * *')
@@ -41,6 +43,10 @@ export class ManagePOExpiryTask {
       for (const po of activePOs) {
         const expiryDate = new Date(po.expiresAt);
         expiryDate.setHours(0, 0, 0, 0);
+
+        // Delete all interests for this PO from the database
+        await this.poInterestRepository.delete({ po: { id: po.id } });
+        this.logger.debug(`Deleted all interests for PO with id: ${po.id}`);
 
         if (expiryDate.getTime() <= today.getTime()) {
           po.isActive = false;
