@@ -45,8 +45,14 @@ export class ManagePOExpiryTask {
         expiryDate.setHours(0, 0, 0, 0);
 
         // Delete all interests for this PO from the database
-        await this.poInterestRepository.delete({ po: { id: po.id } });
-        this.logger.debug(`Deleted all interests for PO with id: ${po.id}`);
+        try {
+          await this.poInterestRepository.delete({ po: { id: po.id } });
+          this.logger.log(`Deleted all interests for PO with id: ${po.id}`);
+        } catch (error) {
+          this.logger.error(
+            `Failed to delete interests for PO ${po.id}: ${error.message}`,
+          );
+        }
 
         if (expiryDate.getTime() <= today.getTime()) {
           po.isActive = false;
@@ -74,4 +80,3 @@ export class ManagePOExpiryTask {
     }
   }
 }
-
