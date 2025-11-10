@@ -23,7 +23,8 @@ export class SendHarvestReminderTask {
   }
 
   // Runs daily at 7:00 AM IST (1:30 AM UTC)
-  @Cron('30 1 * * *')
+  // TEMPORARILY DISABLED
+  // @Cron('30 1 * * *')
   async sendHarvestReminders() {
     this.logger.log('Starting harvest reminder task at 7 AM IST...');
 
