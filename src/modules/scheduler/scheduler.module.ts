@@ -22,12 +22,13 @@ import { sendPreRTHMessagesTask } from './tasks/send-preRTH-message.task';
 import { NotificationModule } from '../notification/notification.module';
 import { UpdateUserCoordinatesTask } from './tasks/update-user-coordinates.task';
 import { ManagePOExpiryTask } from './tasks/manage-po-expiry.task';
-import { PO } from '@one-root/markhet-core';
+import { SendHarvestReminderTask } from './tasks/send-harvest-reminder.task';
+import { PO, POInterest } from '@one-root/markhet-core';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([PO]),
+    TypeOrmModule.forFeature([PO, POInterest]),
     HttpModule,
     HarvestHistoryModule,
     UserModule,
@@ -48,6 +49,7 @@ import { PO } from '@one-root/markhet-core';
     CalculateBuyerScoreTask,
     UpdateUserCoordinatesTask,
     ManagePOExpiryTask,
+    SendHarvestReminderTask,
   ],
   exports: [SchedulerService],
 })
