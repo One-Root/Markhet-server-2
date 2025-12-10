@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@one-root/markhet-core';
+import { User, AggregatorLeads } from '@one-root/markhet-core';
 
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
@@ -14,7 +14,7 @@ import { GetStreamService } from '../../services/get-stream.service';
 import { NewLocationModule } from '../newlocation/newlocation.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), SessionModule, NewLocationModule],
+  imports: [TypeOrmModule.forFeature([User, AggregatorLeads]), SessionModule, NewLocationModule],
   controllers: [UserController],
   providers: [UserService, GetStreamService],
   exports: [UserService],

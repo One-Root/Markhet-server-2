@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { plainToClass } from 'class-transformer';
 
-import { User } from '@one-root/markhet-core';
+import { User, AggregatorLeads } from '@one-root/markhet-core';
 
 import { GetStreamService } from '../../services/get-stream.service';
 
@@ -29,6 +29,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(AggregatorLeads)
+    private aggregatorLeadsRepository: Repository<AggregatorLeads>,
     private readonly getStreamService: GetStreamService,
     private readonly getLocationService: NewLocationService,
   ) {}
@@ -43,7 +45,49 @@ export class UserService {
       );
     }
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    if (savedUser.identity === Identity.BUYER) {
+      console.log('Buyer created:', {
+        id: savedUser.id,
+        name: savedUser.name,
+        mobileNumber: savedUser.mobileNumber,
+        createdAt: savedUser.createdAt,
+      });
+
+      // Create aggregator lead with all buyer cropNames
+      if (savedUser.cropNames && savedUser.cropNames.length > 0) {
+        const aggregatorLead = this.aggregatorLeadsRepository.create({
+          userId: savedUser.id,
+          cropName: savedUser.cropNames,
+          operationScore: 0,
+          experience: 0,
+          hasStock: null,
+          nextReadyDate: null,
+          notes: null,
+          isVisited: null,
+          isTcCompliant: null,
+          lastInteractedAt: null,
+          nextAction: null,
+          nextActionDueDate: null,
+          label: null,
+          capacity: null,
+          capacityUnit: null,
+          frequency: null,
+          currentStock: null,
+          accurateRadius: null,
+          otherCrop: null,
+          isInterestedToWork: null,
+          interestedToWorkPercentage: null,
+          currentStockUnit: null,
+          upfrontPaymentNeedPercentage: null,
+        });
+
+        await this.aggregatorLeadsRepository.save(aggregatorLead);
+      }
+    }
+
+    return savedUser;
   }
 
   findByMobileNumber(mobileNumber: string): Promise<User> {
