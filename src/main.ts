@@ -13,7 +13,7 @@ async function bootstrap() {
     new ValidationPipe({
       shouldTransform: true,
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // allow unknown fields (e.g. Plivo ComplianceApplicationId, ComplianceStatus)
       validationError: 'strict',
     }),
   );

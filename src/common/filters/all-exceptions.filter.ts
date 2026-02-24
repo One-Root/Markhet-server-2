@@ -1,3 +1,5 @@
+import * as Plivo from 'plivo';
+
 import {
   Catch,
   ExceptionFilter,
@@ -8,6 +10,25 @@ import {
 import { Response } from 'express';
 
 import { QueryFailedError } from 'typeorm';
+
+const PLIVO_WEBHOOK_PATHS = [
+  '/calls/answer',
+  '/calls/answer-callback',
+  '/calls/end',
+  '/calls/transfer',
+  '/calls/recording',
+  '/calls/dial-action',
+  '/calls/dial-action-callback',
+  '/calls/ivr',
+];
+
+function isPlivoWebhookRequest(path: string): boolean {
+  return (
+    PLIVO_WEBHOOK_PATHS.some((p) => path === p || path.startsWith(p + '/')) ||
+    path.startsWith('/calls/caller-tune/') ||
+    path.startsWith('/calls/conference/')
+  );
+}
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -35,6 +56,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     else if (exception instanceof Error) {
       message = exception.message;
       error = exception.constructor.name;
+    }
+
+    // Plivo webhooks must return XML; JSON causes "XML Parsing Error" (7011)
+    if (isPlivoWebhookRequest(request.path)) {
+      const plivoResponse = Plivo.Response();
+      response.status(200).type('application/xml').send(plivoResponse.toXML());
+      return;
     }
 
     // construct and send the error response
